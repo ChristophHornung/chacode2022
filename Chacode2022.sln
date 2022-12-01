@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chacode2022", "Chacode2022.csproj", "{ACECDB24-CEA1-4CB0-86A5-7E5FF91A1503}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACECDB24-CEA1-4CB0-86A5-7E5FF91A1503}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACECDB24-CEA1-4CB0-86A5-7E5FF91A1503}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACECDB24-CEA1-4CB0-86A5-7E5FF91A1503}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACECDB24-CEA1-4CB0-86A5-7E5FF91A1503}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2619A1A9-98EC-4C9A-9BB9-D27251411BB3}
+	EndGlobalSection
+EndGlobal
