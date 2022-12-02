@@ -11,34 +11,15 @@ internal class Day2 : DayX
 		while (!reader.EndOfStream)
 		{
 			string line = reader.ReadLine()!.Trim();
-			string[] entries = line.Split(' ');
-			Hand opponent = entries[0] switch
-			{
-				"A" => Hand.Rock, "B" => Hand.Paper, "C" => Hand.Scissors,
-				_ => throw new ArgumentOutOfRangeException()
-			};
-
-			Hand you = entries[1] switch
-			{
-				"X" => Hand.Rock, "Y" => Hand.Paper, "Z" => Hand.Scissors,
-				_ => throw new ArgumentOutOfRangeException()
-			};
-
-			GameResult result = entries[1] switch
-			{
-				"X" => GameResult.Lost, "Y" => GameResult.Draw, "Z" => GameResult.Won,
-				_ => throw new ArgumentOutOfRangeException()
-			};
-
-			roundsMisunderstood.Add(new RoundMisunderstood(opponent, you));
-			rounds.Add(new Round(opponent, result));
+			roundsMisunderstood.Add(RoundMisunderstood.Parse(line, null));
+			rounds.Add(Round.Parse(line, null));
 		}
 
 		Console.WriteLine(
 			$"Day 2: {roundsMisunderstood.Sum(r => r.Score)}|{rounds.Sum(r => r.Score)}");
 	}
 
-	private record Round(Hand Opponent, GameResult Result)
+	private record Round(Hand Opponent, GameResult Result) : IParsable<Round>
 	{
 		public int Score => (int)this.You + (int)this.Result;
 
@@ -69,9 +50,33 @@ internal class Day2 : DayX
 				throw new InvalidOperationException();
 			}
 		}
+
+		public static Round Parse(string s, IFormatProvider? provider)
+		{
+			string line = s.Trim();
+			string[] entries = line.Split(' ');
+			Hand opponent = entries[0] switch
+			{
+				"A" => Hand.Rock, "B" => Hand.Paper, "C" => Hand.Scissors,
+				_ => throw new ArgumentOutOfRangeException()
+			};
+
+			GameResult result = entries[1] switch
+			{
+				"X" => GameResult.Lost, "Y" => GameResult.Draw, "Z" => GameResult.Won,
+				_ => throw new ArgumentOutOfRangeException()
+			};
+
+			return new Round(opponent, result);
+		}
+
+		public static bool TryParse(string? s, IFormatProvider? provider, out Round result)
+		{
+			throw new NotImplementedException();
+		}
 	}
 
-	private record RoundMisunderstood(Hand Opponent, Hand You)
+	private record RoundMisunderstood(Hand Opponent, Hand You) : IParsable<RoundMisunderstood>
 	{
 		public int Score => (int)this.You + (int)this.Result;
 
@@ -101,6 +106,30 @@ internal class Day2 : DayX
 
 				throw new InvalidOperationException();
 			}
+		}
+
+		public static RoundMisunderstood Parse(string s, IFormatProvider? provider)
+		{
+			string line = s.Trim();
+			string[] entries = line.Split(' ');
+			Hand opponent = entries[0] switch
+			{
+				"A" => Hand.Rock, "B" => Hand.Paper, "C" => Hand.Scissors,
+				_ => throw new ArgumentOutOfRangeException()
+			};
+
+			Hand you = entries[1] switch
+			{
+				"X" => Hand.Rock, "Y" => Hand.Paper, "Z" => Hand.Scissors,
+				_ => throw new ArgumentOutOfRangeException()
+			};
+
+			return new RoundMisunderstood(opponent, you);
+		}
+
+		public static bool TryParse(string? s, IFormatProvider? provider, out RoundMisunderstood result)
+		{
+			throw new NotImplementedException();
 		}
 	}
 
