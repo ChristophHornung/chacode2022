@@ -30,7 +30,7 @@ internal class Day3 : DayX
 		}
 
 		Console.WriteLine(
-			$"Day 2: {rucksacks.Select(s => s.Compartment1.Distinct().Single(t => s.Compartment2.Contains(t))).Sum(GetScore)}|" +
+			$"Day 3: {rucksacks.Select(s => s.Compartment1.Distinct().Single(t => s.Compartment2.Contains(t))).Sum(GetScore)}|" +
 			$"{rucksacks.Chunk(3).Select(GetBadge).Sum(GetScore)}");
 	}
 
