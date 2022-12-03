@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,9 +10,11 @@
   <ItemGroup>
     <None Remove="Day1.txt" />
     <None Remove="Day2.txt" />
+    <None Remove="Day3.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Day3.txt" />
     <EmbeddedResource Include="Day2.txt" />
     <EmbeddedResource Include="Day1.txt" />
   </ItemGroup>

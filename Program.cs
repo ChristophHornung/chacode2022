@@ -8,6 +8,7 @@ namespace Chacode2022
 		{
 			new Day1().Solve();
 			new Day2().Solve();
+			new Day3().Solve();
 			Console.ReadKey();
 		}
 	}
