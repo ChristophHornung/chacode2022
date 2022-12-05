@@ -33,7 +33,7 @@ internal class Day5 : DayX
 		}
 
 		horizontals.Reverse();
-		foreach (var horizontal in horizontals)
+		foreach (List<char> horizontal in horizontals)
 		{
 			int i = 0;
 			foreach (char c in horizontal)
@@ -42,6 +42,7 @@ internal class Day5 : DayX
 				{
 					crateStacks[i].Push(c);
 				}
+
 				i++;
 			}
 		}
@@ -53,7 +54,7 @@ internal class Day5 : DayX
 		{
 			Regex reg = new Regex("move ([0-9]*) from ([0-9]*) to ([0-9]*)");
 			Match match = reg.Match(line);
-			if (part==1)
+			if (part == 1)
 			{
 				this.ExecuteMove9000(int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value),
 					int.Parse(match.Groups[3].Value), crateStacks);
@@ -63,7 +64,7 @@ internal class Day5 : DayX
 				this.ExecuteMove9001(int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value),
 					int.Parse(match.Groups[3].Value), crateStacks);
 			}
-			
+
 			line = reader.ReadLine();
 		}
 
