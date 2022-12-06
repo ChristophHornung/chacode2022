@@ -17,6 +17,6 @@ internal class Day6 : DayX
 			}
 		}
 
-		Console.WriteLine($"Day 5-{part}: {result}");
+		Console.WriteLine($"Day 6-{part}: {result}");
 	}
 }
