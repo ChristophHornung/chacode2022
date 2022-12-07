@@ -15,8 +15,8 @@ internal class Day7 : DayX
 			current = this.Parse(reader, root, current);
 		}
 
-		var smallDirectories = root.GetRecursiveDirectories().Where(r => r.FullSize <= 100000).ToList();
-		var allDirectories = root.GetRecursiveDirectories().ToList();
+		List<ElfDirectory> smallDirectories = root.GetRecursiveDirectories().Where(r => r.FullSize <= 100000).ToList();
+		List<ElfDirectory> allDirectories = root.GetRecursiveDirectories().ToList();
 
 		long sizeFree = 70_000_000 - root.FullSize;
 
@@ -34,24 +34,23 @@ internal class Day7 : DayX
 		if (cdMatch.Success)
 		{
 			string target = cdMatch.Groups[1].Value;
-			if (target == "/")
+			switch (target)
 			{
-				return root;
-			}
-			else if (target == "..")
-			{
-				return current.Parent ?? current;
-			}
-			else
-			{
-				ElfDirectory? subDir = current.SubDirectories.FirstOrDefault(n => n.Name == target);
-				if (subDir == null)
+				case "/":
+					return root;
+				case "..":
+					return current.Parent ?? current;
+				default:
 				{
-					subDir = new ElfDirectory(target, current);
-					current.SubDirectories.Add(subDir);
-				}
+					ElfDirectory? subDir = current.SubDirectories.FirstOrDefault(n => n.Name == target);
+					if (subDir == null)
+					{
+						subDir = new ElfDirectory(target, current);
+						current.SubDirectories.Add(subDir);
+					}
 
-				return subDir;
+					return subDir;
+				}
 			}
 		}
 
