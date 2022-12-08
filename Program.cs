@@ -15,6 +15,7 @@ namespace Chacode2022
 			new Day6().Solve(1);
 			new Day6().Solve(2);
 			new Day7().Solve();
+			new Day8().Solve();
 			Console.ReadKey();
 		}
 	}
