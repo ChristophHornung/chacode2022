@@ -47,9 +47,9 @@ internal class Day11 : DayX
 		public int DivisibleTest { get; set; }
 		public int TrueThrow { get; set; }
 		public int FalseThrow { get; set; }
-		public ExpressionType Operator { get; set; }
-		public Expression RightSide { get; set; } = null!;
 		public long InspectionCount { get; private set; }
+
+		public Func<int, int> Operation { get; set; } = null!;
 
 		public static Monkey Parse(StreamReader sr)
 		{
@@ -74,14 +74,12 @@ internal class Day11 : DayX
 
 			ParameterExpression parameterExpression = Expression.Parameter(typeof(int), "old");
 
-			monkey.Operator = GetOpType(parts[1]);
-			monkey.RightSide = GetInput(parts[2], parameterExpression);
+			Expression<Func<int, int>> operationEx = Expression.Lambda<Func<int, int>>(Expression.MakeBinary(
+				GetOpType(parts[1]),
+				GetInput(parts[0], parameterExpression),
+				GetInput(parts[2], parameterExpression)), parameterExpression);
 
-			// This was so nice for part 1... :_( Alas had to change it for part 2
-			//Expression<Func<int, int>> operationEx = Expression.Lambda<Func<int, int>>(Expression.MakeBinary(
-			//	GetOpType(parts[1]),
-			//	GetInput(parts[0], parameterExpression),
-			//	GetInput(parts[2], parameterExpression)), parameterExpression);
+			monkey.Operation = operationEx.Compile();
 
 			line = sr.ReadLine()!;
 			monkey.DivisibleTest = int.Parse(line.Split(' ').Last());
@@ -122,7 +120,7 @@ internal class Day11 : DayX
 				this.InspectionCount++;
 
 				// We modify the level.
-				item.ModifyLevel(this.Operator, this.RightSide);
+				item.ModifyLevel(this.Operation);
 				if (worryReductionActive)
 				{
 					item.WorryLevel /= 3;
@@ -149,52 +147,17 @@ internal class Day11 : DayX
 
 		public int WorryLevel { get; set; }
 
-		public void ModifyLevel(ExpressionType op, Expression rightSide)
+		public void ModifyLevel(Func<int, int> operation)
 		{
 			if (this.moduloMode)
 			{
 				foreach (int modulo in this.moduloValues.Keys)
 				{
-					this.ModifyLevelModulo(modulo, op, rightSide);
+					this.moduloValues[modulo] = operation(this.moduloValues[modulo]) % modulo;
 				}
 			}
 
-			switch (op)
-			{
-				case ExpressionType.Add when rightSide is ConstantExpression cex:
-					this.WorryLevel += (int)cex.Value!;
-					break;
-				case ExpressionType.Multiply when rightSide is ConstantExpression cexM:
-					this.WorryLevel *= (int)cexM.Value!;
-					break;
-				case ExpressionType.Multiply when rightSide is ParameterExpression:
-					this.WorryLevel *= this.WorryLevel;
-					break;
-				default:
-					throw new InvalidOperationException();
-			}
-		}
-
-		private void ModifyLevelModulo(int modulo, ExpressionType op, Expression rightSide)
-		{
-			switch (op)
-			{
-				case ExpressionType.Add when rightSide is ConstantExpression cex:
-					// Add in modulo space just adds
-					this.moduloValues[modulo] += (int)cex.Value!;
-					break;
-				case ExpressionType.Multiply when rightSide is ConstantExpression cexM:
-					// (x * a) mod m = (x mod m) * (a mod m)
-					this.moduloValues[modulo] *= ((int)cexM.Value! % modulo);
-					break;
-				case ExpressionType.Multiply when rightSide is ParameterExpression pex:
-					this.moduloValues[modulo] *= (this.moduloValues[modulo] % modulo);
-					break;
-				default:
-					throw new InvalidOperationException();
-			}
-
-			this.moduloValues[modulo] %= modulo;
+			this.WorryLevel = operation.Invoke(this.WorryLevel);
 		}
 
 		public void SwitchToModuloMode(List<int> modulos)
@@ -222,4 +185,3 @@ internal class Day11 : DayX
 		}
 	}
 }
-
