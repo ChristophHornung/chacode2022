@@ -64,7 +64,6 @@ internal class Day12 : DayX
 		{
 			yield return startPath;
 		}
-
 		foreach (Path subPath in startPath.GetSubPaths())
 		{
 			foreach (Path path in this.FindAllPaths(subPath, end))
