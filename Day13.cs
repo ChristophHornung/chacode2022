@@ -34,7 +34,8 @@ internal class Day13 : DayX
 		all.Add(firstMarker);
 		all.Add(secondMarker);
 		all.Sort();
-		Console.WriteLine($"Day 13 {pairsInOrder.Sum()} | {all.IndexOf(firstMarker) * all.IndexOf(secondMarker)}");
+		Console.WriteLine(
+			$"Day 13 {pairsInOrder.Sum()} | {(all.IndexOf(firstMarker) + 1) * (all.IndexOf(secondMarker) + 1)}");
 	}
 
 	private class PaketData : IComparable<PaketData>
@@ -118,10 +119,7 @@ internal class Day13 : DayX
 
 		public override string ToString()
 		{
-			if (Entry.HasValue)
-			{
-				return Entry.Value.ToString();
-			}
+			if (Entry.HasValue) return Entry.Value.ToString();
 
 			var sb = new StringBuilder();
 			sb.Append('[');
