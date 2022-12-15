@@ -6,7 +6,7 @@ internal class Day7 : DayX
 {
 	public void Solve()
 	{
-		using StreamReader reader = this.GetInput(7);
+		using StreamReader reader = this.GetInput();
 
 		ElfDirectory root = new ElfDirectory("/", null);
 		ElfDirectory current = root;

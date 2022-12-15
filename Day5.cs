@@ -6,7 +6,7 @@ internal class Day5 : DayX
 {
 	public void Solve(int part)
 	{
-		using StreamReader reader = this.GetInput(5);
+		using StreamReader reader = this.GetInput();
 		string? line = reader.ReadLine();
 
 		List<List<char>> horizontals = new();

@@ -4,7 +4,7 @@ internal class Day4 : DayX
 {
 	public void Solve()
 	{
-		using StreamReader reader = this.GetInput(4);
+		using StreamReader reader = this.GetInput();
 
 		List<Pair> elves = new();
 		while (!reader.EndOfStream)

@@ -4,7 +4,7 @@ internal class Day8 : DayX
 {
 	public void Solve()
 	{
-		using StreamReader reader = this.GetInput(8);
+		using StreamReader reader = this.GetInput();
 		Dictionary<(int X, int Y), Tree> trees = reader.ReadToEnd().Split("\r\n")
 			.SelectMany((r, y) => r.Select((c, x) => new Tree(x, y, int.Parse(c.ToString()))))
 			.ToDictionary(c => (c.X, c.Y));

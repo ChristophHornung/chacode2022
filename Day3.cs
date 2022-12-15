@@ -21,7 +21,7 @@ internal class Day3 : DayX
 
 	public void Solve()
 	{
-		using StreamReader reader = this.GetInput(3);
+		using StreamReader reader = this.GetInput();
 		List<Rucksack> rucksacks = new();
 		while (!reader.EndOfStream)
 		{

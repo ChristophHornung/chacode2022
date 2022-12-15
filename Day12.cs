@@ -9,7 +9,7 @@ internal class Day12 : DayX
 	public void Solve(int part)
 	{
 		part1 = part == 1;
-		using StreamReader reader = this.GetInput(12);
+		using StreamReader reader = this.GetInput();
 		Dictionary<Point, int> mapValues = new();
 		List<Point> starts = new();
 		Point? end = null;

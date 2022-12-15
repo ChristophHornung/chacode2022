@@ -7,7 +7,7 @@ internal class Day10 : DayX
 {
 	public void Solve()
 	{
-		using StreamReader reader = this.GetInput(10);
+		using StreamReader reader = this.GetInput();
 		List<Cycle> cycles = new();
 		int cycle = 1;
 		int register = 1;

@@ -4,7 +4,7 @@ internal class Day2 : DayX
 {
 	public void Solve()
 	{
-		using StreamReader reader = this.GetInput(2);
+		using StreamReader reader = this.GetInput();
 
 		List<RoundMisunderstood> roundsMisunderstood = new();
 		List<Round> rounds = new();

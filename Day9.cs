@@ -4,7 +4,7 @@ internal class Day9 : DayX
 {
 	public void Solve(int part)
 	{
-		using StreamReader reader = this.GetInput(9);
+		using StreamReader reader = this.GetInput();
 		Rope r = new(part == 1 ? 1 : 9);
 
 		while (!reader.EndOfStream)

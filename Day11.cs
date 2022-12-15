@@ -6,7 +6,7 @@ internal class Day11 : DayX
 {
 	public void Solve(int part)
 	{
-		using StreamReader reader = this.GetInput(11);
+		using StreamReader reader = this.GetInput();
 		List<Monkey> monkeys = new();
 		bool isPart1 = part == 1;
 		while (!reader.EndOfStream)

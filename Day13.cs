@@ -9,7 +9,7 @@ internal class Day13 : DayX
 	public void Solve(int part)
 	{
 		part1 = part == 1;
-		using var reader = GetInput(13);
+		using var reader = GetInput();
 		List<int> pairsInOrder = new();
 		List<PaketData> all = new();
 		var pair = 1;

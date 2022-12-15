@@ -23,20 +23,36 @@ namespace Chacode2022
 			//new Day11().Solve(2);
 			//new Day12().Solve(1);
 			//new Day12().Solve(2);
-			new Day13().Solve(1);
+			//new Day13().Solve(1);
+			//new Day14().Solve(1);
+			//new Day14().Solve(2);
+			new Day15().Solve(1);
 			Console.ReadKey();
 		}
 	}
 
 	internal class DayX
 	{
-		protected StreamReader GetInput(int day)
+		protected StreamReader GetInput()
 		{
 			var assembly = Assembly.GetExecutingAssembly();
+
+			int day = GetDay();
 
 			Stream stream = assembly.GetManifestResourceStream($"Chacode2022.Day{day}.txt")!;
 			StreamReader reader = new StreamReader(stream);
 			return reader;
+		}
+
+		private int GetDay()
+		{
+			int day = int.Parse(this.GetType().Name[3..]);
+			return day;
+		}
+
+		protected void ReportResult(string result)
+		{
+			Console.WriteLine($"Day {GetDay()} {result}");
 		}
 	}
 }
