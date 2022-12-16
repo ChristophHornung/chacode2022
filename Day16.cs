@@ -122,15 +122,17 @@ internal class Day16 : DayX
 
 		foreach (var valve in closedValves.ToList())
 		{
-			if (!openValvesElephant.Any() && !openValvesHero.Any())
+			bool firstValve = !openValvesElephant.Any() && !openValvesHero.Any();
+			if (firstValve)
 			{
 				Console.WriteLine("X");
 			}
 
 			bool hero = flip;
 			flip = !flip;
-			if (hero)
+			if (hero || firstValve)
 			{
+				// Hero starts
 				openValvesHero.Add(valve);
 			}
 			else
@@ -145,30 +147,40 @@ internal class Day16 : DayX
 
 			if (candidate > largest) largest = candidate;
 
-			if (hero)
+			if (firstValve)
 			{
+				// We do not need to check the elephant as well since it doesn't matter who started
 				openValvesHero.Remove(valve);
-				openValvesElephant.Add(valve);
+				closedValves.Add(valve);
 			}
 			else
 			{
-				openValvesElephant.Remove(valve);
-				openValvesHero.Add(valve);
-			}
-			
-			candidate = CheckAllPathsWithElephantBuddy(start, openValvesHero, openValvesElephant, closedValves, distances);
-			if (candidate > largest) largest = candidate;
+				if (hero)
+				{
+					openValvesHero.Remove(valve);
+					openValvesElephant.Add(valve);
+				}
+				else
+				{
+					openValvesElephant.Remove(valve);
+					openValvesHero.Add(valve);
+				}
 
-			if (hero)
-			{
-				openValvesElephant.Remove(valve);
+				candidate = CheckAllPathsWithElephantBuddy(start, openValvesHero, openValvesElephant, closedValves,
+					distances);
+				if (candidate > largest) largest = candidate;
+
+				if (hero)
+				{
+					openValvesElephant.Remove(valve);
+				}
+				else
+				{
+					openValvesHero.Remove(valve);
+				}
+
+				closedValves.Add(valve);
 			}
-			else
-			{
-				openValvesHero.Remove(valve);
-			}
-			
-			closedValves.Add(valve);
 		}
 
 		return largest;
