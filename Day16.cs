@@ -9,33 +9,36 @@ internal class Day16 : DayX
 
 	public void Solve(int part)
 	{
-		part1 = part == 1;
-		using var reader = GetInput();
+		Day16.part1 = part == 1;
+		using StreamReader reader = this.GetInput();
 		Dictionary<string, List<string>> connections = new();
 		Dictionary<string, Valve> valves = new();
 		Dictionary<(Valve, Valve), int> distances = new();
 		while (!reader.EndOfStream)
 		{
-			var line = reader.ReadLine()!;
+			string line = reader.ReadLine()!;
 			var reg = new Regex("Valve ([A-Z]*) has flow rate=([0-9]*); tunnels? leads? to valves? ");
-			var match = reg.Match(line);
+			Match match = reg.Match(line);
 			var v = new Valve(match.Groups[1].Value, int.Parse(match.Groups[2].Value));
 			valves.Add(v.Code, v);
-			var connection = line[match.Length..].Split(',', StringSplitOptions.TrimEntries);
+			string[] connection = line[match.Length..].Split(',', StringSplitOptions.TrimEntries);
 			connections[v.Code] = new List<string>();
-			foreach (var con in connection) connections[v.Code].Add(con);
+			foreach (string con in connection)
+			{
+				connections[v.Code].Add(con);
+			}
 		}
 
 
-		foreach (var connection in connections)
-		foreach (var dest in connection.Value)
+		foreach (KeyValuePair<string, List<string>> connection in connections)
+		foreach (string dest in connection.Value)
 		{
 			valves[connection.Key].Connections.Add(valves[dest]);
 			distances.Add((valves[connection.Key], valves[dest]), 1);
 		}
 
-		foreach (var a in valves.Values)
-		foreach (var b in valves.Values)
+		foreach (Valve a in valves.Values)
+		foreach (Valve b in valves.Values)
 		{
 			distances[(a, b)] = GetDistance(a, b);
 
@@ -43,28 +46,42 @@ internal class Day16 : DayX
 			{
 				visited ??= new HashSet<Valve>();
 				visited = new HashSet<Valve>(visited);
-				if (start == end) return currentDist;
-				if (distances.TryGetValue((start, end), out var d)) return d + currentDist;
+				if (start == end)
+				{
+					return currentDist;
+				}
+
+				if (distances.TryGetValue((start, end), out int d))
+				{
+					return d + currentDist;
+				}
+
 				visited.Add(start);
 
 				var dist = int.MaxValue;
 
 				currentDist++;
-				foreach (var aConnection in start.Connections.Where(v => !visited.Contains(v)))
+				foreach (Valve aConnection in start.Connections.Where(v => !visited.Contains(v)))
+				{
 					dist = Math.Min(GetDistance(aConnection, end, currentDist, visited), dist);
+				}
 
 				return dist;
 			}
 		}
 
-		ReportResult(CheckAllPaths(valves["AA"], valves["AA"], new HashSet<Valve>(),
+		this.ReportResult(this.CheckAllPaths(valves["AA"], valves["AA"], new HashSet<Valve>(),
 			valves.Values.Where(f => f.FlowRate > 0).ToHashSet(), distances, 30).ToString());
-		currentMaxFlow = 0;
-		part1 = false;
-		ReportResult(CheckAllPathsWithElephantBuddy(
+		Day16.currentMaxFlow = 0;
+		Day16.part1 = false;
+
+		this.ReportResult(this.CheckAllPaths(valves["AA"], valves["AA"], new HashSet<Valve>(),
+			valves.Values.Where(f => f.FlowRate > 0).ToHashSet(), distances, 26).ToString());
+
+		this.ReportResult(this.CheckAllPathsWithElephantBuddy(
 			valves["AA"],
-			new HashSet<Valve>(),
-			new HashSet<Valve>(),
+			new List<Valve>(),
+			new List<Valve>(),
 			valves.Values.Where(f => f.FlowRate > 0).ToHashSet(),
 			distances).ToString());
 	}
@@ -74,22 +91,30 @@ internal class Day16 : DayX
 	private int CheckAllPaths(Valve start, Valve position, HashSet<Valve> openValves, HashSet<Valve> closedValves,
 		Dictionary<(Valve, Valve), int> distances, int minutesRemaining)
 	{
-		var longest = GetFlow(distances, openValves, start).flow;
-		if (closedValves.Select(c => c.FlowRate * minutesRemaining).Sum() + longest <= currentMaxFlow ||
+		int longest = Day16.GetFlow(distances, openValves, start).flow;
+		if (closedValves.Select(c => c.FlowRate * minutesRemaining).Sum() + longest <= Day16.currentMaxFlow ||
 		    minutesRemaining <= 0)
+		{
 			return longest;
+		}
 
-		if (currentMaxFlow < longest) currentMaxFlow = longest;
+		if (Day16.currentMaxFlow < longest)
+		{
+			Day16.currentMaxFlow = longest;
+		}
 
-		foreach (var valve in closedValves.ToList())
+		foreach (Valve valve in closedValves.ToList())
 		{
 			openValves.Add(valve);
 			closedValves.Remove(valve);
-			var candidate = CheckAllPaths(start, valve, openValves, closedValves, distances,
+			int candidate = this.CheckAllPaths(start, valve, openValves, closedValves, distances,
 				minutesRemaining - distances[(position, valve)] - 1);
 			openValves.Remove(valve);
 			closedValves.Add(valve);
-			if (candidate > longest) longest = candidate;
+			if (candidate > longest)
+			{
+				longest = candidate;
+			}
 		}
 
 		return longest;
@@ -98,24 +123,43 @@ internal class Day16 : DayX
 	private static bool flip;
 
 	private int CheckAllPathsWithElephantBuddy(Valve start,
-		HashSet<Valve> openValvesHero, HashSet<Valve> openValvesElephant, HashSet<Valve> closedValves,
+		List<Valve> openValvesHero, List<Valve> openValvesElephant, HashSet<Valve> closedValves,
 		Dictionary<(Valve, Valve), int> distances)
 	{
-		var flowHero = GetFlow(distances, openValvesHero, start);
-		var flowElephant = GetFlow(distances, openValvesElephant, start);
+		(int minutesRemainingAfterLastOpen, int flow) flowHero = Day16.GetFlow(distances, openValvesHero, start);
+		(int minutesRemainingAfterLastOpen, int flow)
+			flowElephant = Day16.GetFlow(distances, openValvesElephant, start);
 
-		var largest = flowElephant.flow + flowHero.flow;
+		int largest = flowElephant.flow + flowHero.flow;
 
-		if (currentMaxFlow < largest)
+		if (Day16.currentMaxFlow < largest)
 		{
-			currentMaxFlow = largest;
+			Day16.currentMaxFlow = largest;
 		}
 
 		int minutesRemaining =
 			Math.Max(flowElephant.minutesRemainingAfterLastOpen, flowHero.minutesRemainingAfterLastOpen);
 
-		if (minutesRemaining <= 0)
+		Valve positionHero = openValvesHero.Count > 0 ? openValvesHero[^1] : start;
+		Valve positionElephant = openValvesElephant.Count > 0 ? openValvesElephant[^1] : start;
+		if (flowElephant.minutesRemainingAfterLastOpen - (2 * distances[(positionHero, positionElephant)] + 1) >
+		    flowHero.minutesRemainingAfterLastOpen)
+		{
+			// Invalid path, the elephant could have gotten to and from the valve the hero just opened in less time remaining
 			return largest;
+		}
+
+		if (flowHero.minutesRemainingAfterLastOpen - (2 * distances[(positionHero, positionElephant)] + 1) >
+		    flowElephant.minutesRemainingAfterLastOpen)
+		{
+			// Reverse check
+			return largest;
+		}
+
+		if (minutesRemaining <= 0)
+		{
+			return largest;
+		}
 
 		if (openValvesHero.Count + closedValves.Count < openValvesElephant.Count)
 		{
@@ -123,19 +167,22 @@ internal class Day16 : DayX
 			return largest;
 		}
 
-		if (closedValves.Select(c => c.FlowRate * minutesRemaining).Sum() + largest <= currentMaxFlow)
-			return largest;
-
-		foreach (var valve in closedValves.ToList())
+		if (closedValves.Select(c => c.FlowRate * minutesRemaining).Sum() + largest <= Day16.currentMaxFlow)
 		{
-			bool firstValve = !openValvesElephant.Any() && !openValvesHero.Any();
+			return largest;
+		}
+
+		foreach (Valve valve in closedValves.ToList())
+		{
+			bool firstValve = openValvesElephant.Count + openValvesHero.Count == 0;
+			bool secondValve = openValvesElephant.Count + openValvesHero.Count == 1;
 			if (firstValve)
 			{
 				Console.WriteLine("X");
 			}
 
-			bool hero = flip;
-			flip = !flip;
+			bool hero = Day16.flip;
+			Day16.flip = !Day16.flip;
 			if (hero || firstValve)
 			{
 				// Hero starts
@@ -145,44 +192,56 @@ internal class Day16 : DayX
 			{
 				openValvesElephant.Add(valve);
 			}
-			
+
 			closedValves.Remove(valve);
 
-			var candidate =
-				CheckAllPathsWithElephantBuddy(start, openValvesHero, openValvesElephant, closedValves, distances);
+			int candidate =
+				this.CheckAllPathsWithElephantBuddy(start, openValvesHero, openValvesElephant, closedValves, distances);
 
-			if (candidate > largest) largest = candidate;
+			if (candidate > largest)
+			{
+				largest = candidate;
+			}
 
 			if (firstValve)
 			{
 				// We do not need to check the elephant as well since it doesn't matter who started
-				openValvesHero.Remove(valve);
+				openValvesHero.RemoveAt(openValvesHero.Count - 1);
 				closedValves.Add(valve);
 			}
 			else
 			{
 				if (hero)
 				{
-					openValvesHero.Remove(valve);
+					openValvesHero.RemoveAt(openValvesHero.Count - 1);
 					openValvesElephant.Add(valve);
 				}
 				else
 				{
-					openValvesElephant.Remove(valve);
+					openValvesElephant.RemoveAt(openValvesElephant.Count - 1);
 					openValvesHero.Add(valve);
 				}
 
-				candidate = CheckAllPathsWithElephantBuddy(start, openValvesHero, openValvesElephant, closedValves,
+				candidate = this.CheckAllPathsWithElephantBuddy(start, openValvesHero, openValvesElephant, closedValves,
 					distances);
-				if (candidate > largest) largest = candidate;
+
+				if (secondValve)
+				{
+					Console.Write("+");
+				}
+
+				if (candidate > largest)
+				{
+					largest = candidate;
+				}
 
 				if (hero)
 				{
-					openValvesElephant.Remove(valve);
+					openValvesElephant.RemoveAt(openValvesElephant.Count - 1);
 				}
 				else
 				{
-					openValvesHero.Remove(valve);
+					openValvesHero.RemoveAt(openValvesHero.Count - 1);
 				}
 
 				closedValves.Add(valve);
@@ -198,31 +257,40 @@ internal class Day16 : DayX
 		var flow = 0;
 		var flowRate = 0;
 		var minute = 0;
-		var position = start;
-		int maxMinutes = part1 ? 30 : 26;
-		var minutesRemaining = maxMinutes;
-		var comb = path.ToList();
-		foreach (var valve in comb)
+		Valve position = start;
+		int maxMinutes = Day16.part1 ? 30 : 26;
+		int minutesRemaining = maxMinutes;
+		List<Valve> comb = path.ToList();
+		foreach (Valve valve in comb)
 		{
 			// Go to valve
-			var distance = distances[(position, valve)];
+			int distance = distances[(position, valve)];
 			for (var i = 0; i < distance; i++)
 			{
 				minute++;
 				minutesRemaining--;
 				flow += flowRate;
-				if (minute == maxMinutes) break;
+				if (minute == maxMinutes)
+				{
+					break;
+				}
 			}
 
 			position = valve;
-			if (minute == maxMinutes) break;
+			if (minute == maxMinutes)
+			{
+				break;
+			}
 
 			// Open the valve
 			minute++;
 			minutesRemaining--;
 			flow += flowRate;
 			flowRate += valve.FlowRate;
-			if (minute == maxMinutes) break;
+			if (minute == maxMinutes)
+			{
+				break;
+			}
 		}
 
 		while (minute < maxMinutes)
@@ -235,21 +303,13 @@ internal class Day16 : DayX
 		return (minutesRemaining, flow);
 	}
 
-	public static IEnumerable<IEnumerable<T>> DifferentCombinations<T>(IEnumerable<T> elements, int k)
-	{
-		return k == 0
-			? new[] {new T[0]}
-			: elements.SelectMany((e, i) =>
-				DifferentCombinations<T>(elements.Where(s => !s.Equals(e)), k - 1).Select(c => new[] {e}.Concat(c)));
-	}
-
 	public record Valve(string Code, int FlowRate)
 	{
 		public List<Valve> Connections { get; } = new();
 
 		public override string ToString()
 		{
-			return $"{Code}:{FlowRate}";
+			return $"{this.Code}:{this.FlowRate}";
 		}
 	}
 }
