@@ -106,19 +106,25 @@ internal class Day16 : DayX
 
 		var largest = flowElephant.flow + flowHero.flow;
 
+		if (currentMaxFlow < largest)
+		{
+			currentMaxFlow = largest;
+		}
+
 		int minutesRemaining =
 			Math.Max(flowElephant.minutesRemainingAfterLastOpen, flowHero.minutesRemainingAfterLastOpen);
 
 		if (minutesRemaining <= 0)
 			return largest;
 
+		if (openValvesHero.Count + closedValves.Count < openValvesElephant.Count)
+		{
+			// The hero will always open more or equal the amount of valves than the elephant.
+			return largest;
+		}
+
 		if (closedValves.Select(c => c.FlowRate * minutesRemaining).Sum() + largest <= currentMaxFlow)
 			return largest;
-
-		if (currentMaxFlow < largest)
-		{
-			currentMaxFlow = largest;
-		}
 
 		foreach (var valve in closedValves.ToList())
 		{
