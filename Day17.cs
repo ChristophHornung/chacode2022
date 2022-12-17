@@ -201,7 +201,7 @@ internal class Day17 : DayX
 		private void Cleanup()
 		{
 			// Only cleanup if too high
-			if (this.HighestRock - this.lowestRelevantRock > 1000)
+			if (this.HighestRock - this.lowestRelevantRock > 5000)
 			{
 				long fullLine = this.HighestRock;
 
@@ -253,9 +253,9 @@ internal class Day17 : DayX
 		{
 			this.Width = 3;
 			this.Height = 3;
-			this.LeftBlowChecks = new (int x, int y)[] {(1, 0), (0, 1), (1, 2)};
-			this.RightBlowChecks = new (int x, int y)[] {(1, 0), (2, 1), (1, 2)};
-			this.DownBlowChecks = new (int x, int y)[] {(0, 1), (1, 0), (2, 1)};
+			this.LeftBlowChecks = new (int x, int y)[] {(0, 1), (1, 0), (1, 2)};
+			this.RightBlowChecks = new (int x, int y)[] {(2, 1), (1, 0), (1, 2)};
+			this.DownBlowChecks = new (int x, int y)[] {(1, 0), (0, 1), (2, 1)};
 			this.Rocks = new (int x, int y)[] {(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)};
 		}
 
