@@ -11,7 +11,7 @@ internal class Day17 : DayX
 		part1 = part == 1;
 		using var reader = GetInput();
 		var line = reader.ReadLine()!;
-		var winds = line.Select(l => l == '<' ? -1 : 1).ToList();
+		var winds = line.Select(l => l == '<' ? -1 : 1).ToArray();
 
 		List<Shape> shapes = new()
 		{
@@ -161,10 +161,10 @@ internal class Day17 : DayX
 
 	private class WindGenerator
 	{
-		private List<int> Winds { get; }
+		private int[] Winds { get; }
 		private int index;
 
-		public WindGenerator(List<int> winds)
+		public WindGenerator(int[] winds)
 		{
 			Winds = winds;
 		}
@@ -173,7 +173,7 @@ internal class Day17 : DayX
 		{
 			var wind = Winds[index];
 			index++;
-			if (index == Winds.Count) index = 0;
+			if (index == Winds.Length) index = 0;
 
 			return wind;
 		}
