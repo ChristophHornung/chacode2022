@@ -11,7 +11,7 @@ internal class Day17 : DayX
 		Day17.part1 = part == 1;
 		using StreamReader reader = this.GetInput();
 		string line = reader.ReadLine()!;
-		List<Wind> winds = line.Select(l => l == '<' ? Wind.Left : Wind.Right).ToList();
+		List<int> winds = line.Select(l => l == '<' ? -1 : 1).ToList();
 
 		List<Shape> shapes = new()
 		{
@@ -60,69 +60,48 @@ internal class Day17 : DayX
 
 	private void AddRocks(Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		for (var x = 0; x < shape.Width; x++)
-		for (var y = 0; y < shape.Height; y++)
+		foreach((int x, int y) in shape.Rocks)
 		{
-			if (shape.HasRockAt(x, y))
-			{
-				chamber.SetRock(positionX + x, positionY + y);
-			}
+			chamber.SetRock(positionX + x, positionY + y);
 		}
 	}
 
 	private int Blow(WindGenerator windGenerator, Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		Wind wind = windGenerator.GetWind();
-		int addX = wind == Wind.Left ? -1 : +1;
+		int wind = windGenerator.GetWind();
 
-		if (wind == Wind.Left && positionX == 0)
+		if (wind == -1)
 		{
-			return positionX;
-		}
-
-		if (wind == Wind.Right && positionX + shape.Width >= 7)
-		{
-			return positionX;
-		}
-
-		if (wind == Wind.Left)
-		{
-			for (var y = 0; y < shape.Height; y++)
+			if (positionX == 0)
 			{
-				for (var x = 0; x < shape.Width; x++)
-				{
-					if (shape.HasRockAt(x, y))
-					{
-						if (chamber.HasRock(positionX + x + addX, positionY + y))
-						{
-							return positionX;
-						}
+				return positionX;
+			}
 
-						break;
-					}
+			foreach ((int x, int y) in shape.LeftBlowChecks)
+			{
+				if (chamber.HasRock(positionX + x + wind, positionY + y))
+				{
+					return positionX;
 				}
 			}
 		}
 		else
 		{
-			for (var y = 0; y < shape.Height; y++)
+			if (positionX + shape.Width >= 7)
 			{
-				for (int x = shape.Width - 1; x >= 0; x--)
-				{
-					if (shape.HasRockAt(x, y))
-					{
-						if (chamber.HasRock(positionX + x + addX, positionY + y))
-						{
-							return positionX;
-						}
+				return positionX;
+			}
 
-						break;
-					}
+			foreach ((int x, int y) in shape.RightBlowChecks)
+			{
+				if (chamber.HasRock(positionX + x + wind, positionY + y))
+				{
+					return positionX;
 				}
 			}
 		}
 
-		return positionX + addX;
+		return positionX + wind;
 	}
 
 	private bool IsStopped(Shape shape, Chamber chamber, int positionX, long positionY)
@@ -137,17 +116,11 @@ internal class Day17 : DayX
 			return false;
 		}
 
-		for (var x = 0; x < shape.Width; x++)
-		for (var y = 0; y < shape.Height; y++)
+		foreach ((int x, int y) in shape.DownBlowChecks)
 		{
-			if (shape.HasRockAt(x, y))
+			if (chamber.HasRock(positionX + x, positionY + y - 1))
 			{
-				if (chamber.HasRock(positionX + x, positionY + y - 1))
-				{
-					return true;
-				}
-
-				break;
+				return true;
 			}
 		}
 
@@ -156,17 +129,17 @@ internal class Day17 : DayX
 
 	private class WindGenerator
 	{
-		private List<Wind> Winds { get; }
+		private List<int> Winds { get; }
 		private int index;
 
-		public WindGenerator(List<Wind> winds)
+		public WindGenerator(List<int> winds)
 		{
 			this.Winds = winds;
 		}
 
-		public Wind GetWind()
+		public int GetWind()
 		{
-			Wind wind = this.Winds[this.index];
+			int wind = this.Winds[this.index];
 			this.index++;
 			if (this.index == this.Winds.Count)
 			{
@@ -177,17 +150,15 @@ internal class Day17 : DayX
 		}
 	}
 
-	private enum Wind
-	{
-		Left,
-		Right
-	}
-
 	private abstract class Shape
 	{
 		public int Height { get; set; }
 		public int Width { get; set; }
 		public abstract bool HasRockAt(int x, int y);
+		public (int x, int y)[] LeftBlowChecks { get; protected set; }
+		public (int x, int y)[] RightBlowChecks { get; protected set; }
+		public (int x, int y)[] DownBlowChecks { get; protected set; }
+		public (int x, int y)[] Rocks { get; protected set; }
 	}
 
 	private class Chamber
@@ -200,7 +171,7 @@ internal class Day17 : DayX
 
 		public void SetRock(int x, long y)
 		{
-			if (!this.rocks.TryGetValue(y,out bool[]? line))
+			if (!this.rocks.TryGetValue(y, out bool[]? line))
 			{
 				line = new bool[7];
 				this.rocks[y] = line;
@@ -210,7 +181,7 @@ internal class Day17 : DayX
 			if (y > this.HighestRock)
 			{
 				this.HighestRock = y;
-				if (this.HighestRock % 1000 == 0)
+				if (this.HighestRock % 1_000 == 0)
 				{
 					this.Cleanup();
 				}
@@ -219,7 +190,7 @@ internal class Day17 : DayX
 
 		public bool HasRock(int x, long y)
 		{
-			if (this.rocks.TryGetValue(y,out bool[]? line))
+			if (this.rocks.TryGetValue(y, out bool[]? line))
 			{
 				return line[x];
 			}
@@ -264,6 +235,10 @@ internal class Day17 : DayX
 		{
 			this.Width = 4;
 			this.Height = 1;
+			this.LeftBlowChecks = new (int x, int y)[] {(0, 0)};
+			this.RightBlowChecks = new (int x, int y)[] {(3, 0)};
+			this.DownBlowChecks = new (int x, int y)[] {(0, 0), (1, 0), (2, 0), (3, 0)};
+			this.Rocks = this.DownBlowChecks;
 		}
 
 		public override bool HasRockAt(int x, int y)
@@ -278,6 +253,10 @@ internal class Day17 : DayX
 		{
 			this.Width = 3;
 			this.Height = 3;
+			this.LeftBlowChecks = new (int x, int y)[] {(1, 0), (0, 1), (1, 2)};
+			this.RightBlowChecks = new (int x, int y)[] {(1, 0), (2, 1), (1, 2)};
+			this.DownBlowChecks = new (int x, int y)[] {(0, 1), (1, 0), (2, 1)};
+			this.Rocks = new (int x, int y)[] {(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)};
 		}
 
 		public override bool HasRockAt(int x, int y)
@@ -292,6 +271,10 @@ internal class Day17 : DayX
 		{
 			this.Width = 3;
 			this.Height = 3;
+			this.LeftBlowChecks = new (int x, int y)[] {(0, 0), (2, 1), (2, 2)};
+			this.RightBlowChecks = new (int x, int y)[] {(2, 0), (2, 1), (2, 2)};
+			this.DownBlowChecks = new (int x, int y)[] {(0, 0), (1, 0), (2, 0)};
+			this.Rocks = new (int x, int y)[] {(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)};
 		}
 
 		public override bool HasRockAt(int x, int y)
@@ -306,6 +289,10 @@ internal class Day17 : DayX
 		{
 			this.Width = 1;
 			this.Height = 4;
+			this.LeftBlowChecks = new (int x, int y)[] {(0, 0), (0, 1), (0, 2), (0,3)};
+			this.RightBlowChecks = this.LeftBlowChecks;
+			this.DownBlowChecks = new (int x, int y)[] {(0, 0)};
+			this.Rocks = this.RightBlowChecks;
 		}
 
 		public override bool HasRockAt(int x, int y)
@@ -320,6 +307,10 @@ internal class Day17 : DayX
 		{
 			this.Width = 2;
 			this.Height = 2;
+			this.LeftBlowChecks = new (int x, int y)[] {(0, 0), (0, 1)};
+			this.RightBlowChecks = new (int x, int y)[] {(1, 0), (1, 1)};
+			this.DownBlowChecks = new (int x, int y)[] {(0, 0), (1, 0)};
+			this.Rocks = new (int x, int y)[] {(0, 0), (1, 0), (0, 1), (1, 1)};
 		}
 
 		public override bool HasRockAt(int x, int y)
