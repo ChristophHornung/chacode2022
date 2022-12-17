@@ -28,7 +28,7 @@ internal class CuttableList
 				return 0b0;
 			}
 
-			return this.buffer[index - this.offset];
+			return this.buffer[realIndex];
 		}
 
 		set
