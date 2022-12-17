@@ -28,7 +28,7 @@ internal class Day17 : DayX
 		var sw = Stopwatch.StartNew();
 		for (long i = 0; i < shapesCount; i++)
 		{
-			if (i % 1_000_000 == 0 && i != 0)
+			if (i % 10_000_000 == 0 && i != 0)
 			{
 				Console.WriteLine(sw.Elapsed * (1_000_000_000_000 / (double)i));
 			}
@@ -63,7 +63,7 @@ internal class Day17 : DayX
 		for (var x = 0; x < shape.Width; x++)
 		for (var y = 0; y < shape.Height; y++)
 		{
-			if (shape.GetPixel(x, y) == Pixel.Rock)
+			if (shape.HasRockAt(x, y))
 			{
 				chamber.SetRock(positionX + x, positionY + y);
 			}
@@ -91,7 +91,7 @@ internal class Day17 : DayX
 			{
 				for (var x = 0; x < shape.Width; x++)
 				{
-					if (shape.GetPixel(x, y) == Pixel.Rock)
+					if (shape.HasRockAt(x, y))
 					{
 						if (chamber.HasRock(positionX + x + addX, positionY + y))
 						{
@@ -109,7 +109,7 @@ internal class Day17 : DayX
 			{
 				for (int x = shape.Width - 1; x >= 0; x--)
 				{
-					if (shape.GetPixel(x, y) == Pixel.Rock)
+					if (shape.HasRockAt(x, y))
 					{
 						if (chamber.HasRock(positionX + x + addX, positionY + y))
 						{
@@ -140,7 +140,7 @@ internal class Day17 : DayX
 		for (var x = 0; x < shape.Width; x++)
 		for (var y = 0; y < shape.Height; y++)
 		{
-			if (shape.GetPixel(x, y) == Pixel.Rock)
+			if (shape.HasRockAt(x, y))
 			{
 				if (chamber.HasRock(positionX + x, positionY + y - 1))
 				{
@@ -156,8 +156,8 @@ internal class Day17 : DayX
 
 	private class WindGenerator
 	{
-		public List<Wind> Winds { get; }
-		private int index = 0;
+		private List<Wind> Winds { get; }
+		private int index;
 
 		public WindGenerator(List<Wind> winds)
 		{
@@ -166,8 +166,13 @@ internal class Day17 : DayX
 
 		public Wind GetWind()
 		{
-			Wind wind = this.Winds[this.index % this.Winds.Count];
+			Wind wind = this.Winds[this.index];
 			this.index++;
+			if (this.index == this.Winds.Count)
+			{
+				this.index = 0;
+			}
+
 			return wind;
 		}
 	}
@@ -182,27 +187,74 @@ internal class Day17 : DayX
 	{
 		public int Height { get; set; }
 		public int Width { get; set; }
-		public abstract Pixel GetPixel(int x, int y);
+		public abstract bool HasRockAt(int x, int y);
 	}
 
 	private class Chamber
 	{
-		private HashSet<(int x, long y)> rocks = new();
+		private long lowestRelevantRock = -1;
+
+		private readonly Dictionary<long, bool[]> rocks = new();
 
 		public long HighestRock { get; private set; } = -1;
 
 		public void SetRock(int x, long y)
 		{
-			this.rocks.Add((x, y));
+			if (!this.rocks.TryGetValue(y,out bool[]? line))
+			{
+				line = new bool[7];
+				this.rocks[y] = line;
+			}
+
+			line[x] = true;
 			if (y > this.HighestRock)
 			{
 				this.HighestRock = y;
+				if (this.HighestRock % 1000 == 0)
+				{
+					this.Cleanup();
+				}
 			}
 		}
 
 		public bool HasRock(int x, long y)
 		{
-			return this.rocks.Contains((x, y));
+			if (this.rocks.TryGetValue(y,out bool[]? line))
+			{
+				return line[x];
+			}
+
+			return false;
+		}
+
+		private void Cleanup()
+		{
+			// Only cleanup if too high
+			if (this.HighestRock - this.lowestRelevantRock > 1000)
+			{
+				long fullLine = this.HighestRock;
+
+				// Search for complete line
+				for (long y = this.HighestRock - 1000; y > this.lowestRelevantRock; y--)
+				{
+					if (this.rocks.TryGetValue(y, out bool[]? line) && line[0] && line[1] && line[2] && line[3] &&
+					    line[4] && line[5] && line[6])
+					{
+						fullLine = y;
+						break;
+					}
+				}
+
+				if (fullLine != this.HighestRock)
+				{
+					for (long y = this.lowestRelevantRock; y < fullLine; y++)
+					{
+						this.rocks.Remove(y);
+					}
+				}
+
+				this.lowestRelevantRock = fullLine;
+			}
 		}
 	}
 
@@ -214,9 +266,9 @@ internal class Day17 : DayX
 			this.Height = 1;
 		}
 
-		public override Pixel GetPixel(int x, int y)
+		public override bool HasRockAt(int x, int y)
 		{
-			return Pixel.Rock;
+			return true;
 		}
 	}
 
@@ -228,18 +280,9 @@ internal class Day17 : DayX
 			this.Height = 3;
 		}
 
-		public override Pixel GetPixel(int x, int y)
+		public override bool HasRockAt(int x, int y)
 		{
-			switch (x)
-			{
-				case 0 when y == 0:
-				case 0 when y == 2:
-				case 2 when y == 0:
-				case 2 when y == 2:
-					return Pixel.Free;
-				default:
-					return Pixel.Rock;
-			}
+			return (x != 0 || y != 0) && (x != 0 || y != 2) && (x != 2 || y != 0) && (x != 2 || y != 2);
 		}
 	}
 
@@ -251,17 +294,9 @@ internal class Day17 : DayX
 			this.Height = 3;
 		}
 
-		public override Pixel GetPixel(int x, int y)
+		public override bool HasRockAt(int x, int y)
 		{
-			switch (y)
-			{
-				case 0:
-				case 1 when x == 2:
-				case 2 when x == 2:
-					return Pixel.Rock;
-				default:
-					return Pixel.Free;
-			}
+			return y == 0 || y == 1 && x == 2 || y == 2 && x == 2;
 		}
 	}
 
@@ -273,9 +308,9 @@ internal class Day17 : DayX
 			this.Height = 4;
 		}
 
-		public override Pixel GetPixel(int x, int y)
+		public override bool HasRockAt(int x, int y)
 		{
-			return Pixel.Rock;
+			return true;
 		}
 	}
 
@@ -287,15 +322,9 @@ internal class Day17 : DayX
 			this.Height = 2;
 		}
 
-		public override Pixel GetPixel(int x, int y)
+		public override bool HasRockAt(int x, int y)
 		{
-			return Pixel.Rock;
+			return true;
 		}
-	}
-
-	internal enum Pixel
-	{
-		Free,
-		Rock
 	}
 }
