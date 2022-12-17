@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Chacode2022;
 
@@ -28,7 +27,6 @@ internal class Day16 : DayX
 				connections[v.Code].Add(con);
 			}
 		}
-
 
 		foreach (KeyValuePair<string, List<string>> connection in connections)
 		foreach (string dest in connection.Value)
@@ -137,6 +135,18 @@ internal class Day16 : DayX
 			Day16.currentMaxFlow = largest;
 		}
 
+		if (flowElephant.minutesRemainingAfterLastOpen < 0 || flowHero.minutesRemainingAfterLastOpen < 0)
+		{
+			// Not all valves could be opened => illegal
+			return largest;
+		}
+
+		if (openValvesElephant.Count > 0 && openValvesHero[0].CodeValue > openValvesElephant[0].CodeValue)
+		{
+			// We remove symmetric paths, the hero always has the lower start!
+			return largest;
+		}
+
 		int minutesRemaining =
 			Math.Max(flowElephant.minutesRemainingAfterLastOpen, flowHero.minutesRemainingAfterLastOpen);
 
@@ -183,7 +193,7 @@ internal class Day16 : DayX
 
 			bool hero = Day16.flip;
 			Day16.flip = !Day16.flip;
-			if (hero || firstValve)
+			if ((hero || firstValve) && !secondValve)
 			{
 				// Hero starts
 				openValvesHero.Add(valve);
@@ -209,6 +219,13 @@ internal class Day16 : DayX
 				openValvesHero.RemoveAt(openValvesHero.Count - 1);
 				closedValves.Add(valve);
 			}
+			else if (secondValve)
+			{
+				// We do not need to check the hero as well since it doesn't matter who went second
+				openValvesElephant.RemoveAt(openValvesElephant.Count - 1);
+				closedValves.Add(valve);
+				Console.Write("+");
+			}
 			else
 			{
 				if (hero)
@@ -224,11 +241,6 @@ internal class Day16 : DayX
 
 				candidate = this.CheckAllPathsWithElephantBuddy(start, openValvesHero, openValvesElephant, closedValves,
 					distances);
-
-				if (secondValve)
-				{
-					Console.Write("+");
-				}
 
 				if (candidate > largest)
 				{
@@ -261,6 +273,7 @@ internal class Day16 : DayX
 		int maxMinutes = Day16.part1 ? 30 : 26;
 		int minutesRemaining = maxMinutes;
 		List<Valve> comb = path.ToList();
+		var opened = 0;
 		foreach (Valve valve in comb)
 		{
 			// Go to valve
@@ -283,6 +296,7 @@ internal class Day16 : DayX
 			}
 
 			// Open the valve
+			opened++;
 			minute++;
 			minutesRemaining--;
 			flow += flowRate;
@@ -300,12 +314,27 @@ internal class Day16 : DayX
 		}
 
 		// Debug.WriteLine(string.Join('-', comb.Select(v => v.Code)) + " " + flow);
+		if (opened < comb.Count)
+		{
+			minutesRemaining = -1;
+		}
+
 		return (minutesRemaining, flow);
 	}
 
-	public record Valve(string Code, int FlowRate)
+	public class Valve
 	{
+		public Valve(string code, int flowRate)
+		{
+			this.Code = code;
+			this.FlowRate = flowRate;
+			this.CodeValue = code[0] * 100 + code[1];
+		}
+
 		public List<Valve> Connections { get; } = new();
+		public string Code { get; }
+		public int CodeValue { get; }
+		public int FlowRate { get; }
 
 		public override string ToString()
 		{
