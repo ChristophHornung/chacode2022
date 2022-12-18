@@ -87,7 +87,7 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			if (chamber.CheckCollision(positionY, shape.ShapeDatasI[positionX + wind], shape.Height))
+			if (chamber.CheckCollision(positionY, shape.ShapeDatasI[positionX + wind]))
 			{
 				return positionX;
 			}
@@ -104,7 +104,7 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			if (chamber.CheckCollision(positionY, shape.ShapeDatasI[positionX + wind], shape.Height))
+			if (chamber.CheckCollision(positionY, shape.ShapeDatasI[positionX + wind]))
 			{
 				return positionX;
 			}
@@ -125,7 +125,7 @@ internal class Day17 : DayX
 			return false;
 		}
 
-		return chamber.CheckCollision(positionY - 1, shape.ShapeDatasI[positionX], shape.Height);
+		return chamber.CheckCollision(positionY - 1, shape.ShapeDatasI[positionX]);
 	}
 
 	private abstract class Shape
@@ -199,19 +199,14 @@ internal class Day17 : DayX
 				this.Cleanup(y);
 			}
 		}
-		public bool CheckCollision(long y, int shape, int shapeLines)
+		public bool CheckCollision(long y, int shape)
 		{
-			return this.rocks.CheckCollision(y, shape, shapeLines);
+			return this.rocks.CheckCollision(y, shape);
 		}
 
 		public bool CheckCollision(long y, byte[] shapeLines)
 		{
 			return this.rocks.CheckCollision(y, shapeLines);
-		}
-
-		public bool CheckCollision(long y, int shapeLine)
-		{
-			return (this.rocks[y] & shapeLine) > 0;
 		}
 
 		private void Cleanup(long y)

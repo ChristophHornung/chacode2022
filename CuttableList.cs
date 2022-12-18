@@ -98,7 +98,7 @@ internal sealed class CuttableList
 		}
 	}
 
-	public unsafe bool CheckCollision(long index, int shape, int shapeLines)
+	public unsafe bool CheckCollision(long index, int shape)
 	{
 		long realIndex = index - this.offset;
 		byte* pb = (byte*)this.bufferMemoryHandle.Pointer;
