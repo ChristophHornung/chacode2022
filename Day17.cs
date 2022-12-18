@@ -175,15 +175,19 @@ internal class Day17 : DayX
 
 		public void SetRocks(long y, byte shapeLine)
 		{
-			this.rocks[y] |= shapeLine;
 			if (y > this.HighestRock)
 			{
+				this.rocks[y] = shapeLine;
 				this.HighestRock = y;
 			}
-
-			if (this.rocks[y] == 0b01111111)
+			else
 			{
-				this.Cleanup(y);
+				this.rocks[y] |= shapeLine;
+
+				if (this.rocks[y] == 0b01111111)
+				{
+					this.Cleanup(y);
+				}
 			}
 		}
 

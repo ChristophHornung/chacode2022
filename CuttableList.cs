@@ -1,8 +1,8 @@
 ﻿namespace Chacode2022;
 
-internal class CuttableList
+internal sealed class CuttableList
 {
-	private byte[] buffer;
+	private  byte[] buffer;
 	private long cuttable = 0;
 	private long offset = 0;
 	private long maxSetIndex = -1;
@@ -11,6 +11,7 @@ internal class CuttableList
 	public CuttableList()
 	{
 		this.buffer = new byte[CuttableList.bufferLength];
+
 	}
 
 	public void CutBelow(long index)
@@ -36,7 +37,12 @@ internal class CuttableList
 		{
 			byte[] b = this.buffer;
 			long realIndex = index - this.offset;
-			if (realIndex > b.Length - 1)
+			if (realIndex <= b.Length - 1)
+			{
+				b[realIndex] = value;
+				this.maxSetIndex = realIndex;
+			}
+			else
 			{
 				byte[] newBuffer = new byte[b.Length];
 				Array.Copy(this.buffer, this.cuttable, newBuffer, 0, this.maxSetIndex + 1 - this.cuttable);
@@ -45,10 +51,9 @@ internal class CuttableList
 				this.offset += this.cuttable;
 				this.cuttable = 0;
 				realIndex = index - this.offset;
+				b[realIndex] = value;
+				this.maxSetIndex = realIndex;
 			}
-
-			b[realIndex] = value;
-			this.maxSetIndex = realIndex;
 		}
 	}
 }
