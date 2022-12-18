@@ -86,12 +86,9 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			for (int y = 0; y < shape.ShapeData.Length; y++)
+			if (chamber.CheckCollision(positionY, shape.ShapeDatas[positionX + wind]))
 			{
-				if (chamber.CheckCollision(positionY + y, shape.ShapeDatas[positionX + wind][y]))
-				{
-					return positionX;
-				}
+				return positionX;
 			}
 		}
 		else
