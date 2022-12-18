@@ -64,8 +64,7 @@ internal class Day17 : DayX
 	{
 		for (var y = 0; y < shape.ShapeData.Length; y++)
 		{
-			byte shapeLine = shape.ShapeDatas[positionX][y];
-			chamber.SetRocks(positionY + y, shapeLine);
+			chamber.SetRocks(positionY + y, shape.ShapeDatas[positionX][y]);
 		}
 	}
 
@@ -91,8 +90,7 @@ internal class Day17 : DayX
 
 			for (var y = 0; y < shape.ShapeData.Length; y++)
 			{
-				byte shapeLine = shape.ShapeDatas[positionX + wind][y];
-				if (chamber.CheckCollision(positionY + y, shapeLine))
+				if (chamber.CheckCollision(positionY + y, shape.ShapeDatas[positionX + wind][y]))
 				{
 					return positionX;
 				}
@@ -112,8 +110,7 @@ internal class Day17 : DayX
 
 			for (var y = 0; y < shape.ShapeData.Length; y++)
 			{
-				byte shapeLine = shape.ShapeDatas[positionX + wind][y];
-				if (chamber.CheckCollision(positionY + y, shapeLine))
+				if (chamber.CheckCollision(positionY + y, shape.ShapeDatas[positionX + wind][y]))
 				{
 					return positionX;
 				}
@@ -137,37 +134,13 @@ internal class Day17 : DayX
 
 		for (var y = 0; y < shape.DownCheckHeight; y++)
 		{
-			byte shapeLine = shape.ShapeDatas[positionX][y];
-			if (chamber.CheckCollision(positionY + y - 1, shapeLine))
+			if (chamber.CheckCollision(positionY + y - 1, shape.ShapeDatas[positionX][y]))
 			{
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	private class WindGenerator
-	{
-		private List<int> Winds { get; }
-		private int index;
-
-		public WindGenerator(List<int> winds)
-		{
-			this.Winds = winds;
-		}
-
-		public int GetWind()
-		{
-			int wind = this.Winds[this.index];
-			this.index++;
-			if (this.index == this.Winds.Count)
-			{
-				this.index = 0;
-			}
-
-			return wind;
-		}
 	}
 
 	private abstract class Shape
