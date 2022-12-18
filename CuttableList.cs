@@ -1,5 +1,7 @@
 ﻿namespace Chacode2022;
 
+using System;
+
 internal sealed class CuttableList
 {
 	private  byte[] buffer;
@@ -32,7 +34,7 @@ internal sealed class CuttableList
 
 			return b[realIndex];
 		}
-
+		
 		set
 		{
 			byte[] b = this.buffer;
@@ -53,6 +55,93 @@ internal sealed class CuttableList
 				realIndex = index - this.offset;
 				b[realIndex] = value;
 				this.maxSetIndex = realIndex;
+			}
+		}
+	}
+
+	public unsafe void SetRocks(long index, byte[] shapes)
+	{
+		byte[] b = this.buffer;
+		long realIndex = index - this.offset;
+		if (realIndex + shapes.Length <= b.Length)
+		{
+			fixed (byte* pb = b)
+			{
+				for (int i = 0; i < shapes.Length; i++)
+				{
+					pb[realIndex + i] |= shapes[i];
+				}
+			}
+
+			if (this.maxSetIndex < realIndex + shapes.Length - 1)
+			{
+				this.maxSetIndex = realIndex + shapes.Length - 1;
+			}
+			
+		}
+		else
+		{
+			byte[] newBuffer = new byte[b.Length];
+			Array.Copy(this.buffer, this.cuttable, newBuffer, 0, this.maxSetIndex + 1 - this.cuttable);
+			this.buffer = newBuffer;
+			b = newBuffer;
+			this.offset += this.cuttable;
+			this.cuttable = 0;
+			realIndex = index - this.offset;
+			fixed (byte* pb = b)
+			{
+				for (int i = 0; i < shapes.Length; i++)
+				{
+					pb[realIndex + i] |= shapes[i];
+				}
+			}
+
+			if (this.maxSetIndex < realIndex + shapes.Length - 1)
+			{
+				this.maxSetIndex = realIndex + shapes.Length - 1;
+			}
+		}
+	}
+
+	public unsafe void SetRocksDirect(long index, byte[] shapes)
+	{
+		byte[] b = this.buffer;
+		long realIndex = index - this.offset;
+		if (realIndex + shapes.Length <= b.Length)
+		{
+			fixed (byte* pb = b)
+			{
+				for (int i = 0; i < shapes.Length; i++)
+				{
+					pb[realIndex + i] = shapes[i];
+				}
+			}
+
+			if (this.maxSetIndex < realIndex + shapes.Length - 1)
+			{
+				this.maxSetIndex = realIndex + shapes.Length - 1;
+			}
+		}
+		else
+		{
+			byte[] newBuffer = new byte[b.Length];
+			Array.Copy(this.buffer, this.cuttable, newBuffer, 0, this.maxSetIndex + 1 - this.cuttable);
+			this.buffer = newBuffer;
+			b = newBuffer;
+			this.offset += this.cuttable;
+			this.cuttable = 0;
+			realIndex = index - this.offset;
+			fixed (byte* pb = b)
+			{
+				for (int i = 0; i < shapes.Length; i++)
+				{
+					pb[realIndex + i] = shapes[i];
+				}
+			}
+
+			if (this.maxSetIndex < realIndex + shapes.Length - 1)
+			{
+				this.maxSetIndex = realIndex + shapes.Length - 1;
 			}
 		}
 	}
