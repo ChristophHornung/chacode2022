@@ -124,15 +124,7 @@ internal class Day17 : DayX
 			return false;
 		}
 
-		for (int y = 0; y < shape.DownCheckHeight; y++)
-		{
-			if (chamber.CheckCollision(positionY + y - 1, shape.ShapeDatas[positionX][y]))
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return chamber.CheckCollision(positionY - 1, shape.ShapeDatas[positionX]);
 	}
 
 	private abstract class Shape
