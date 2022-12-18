@@ -106,12 +106,9 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			for (int y = 0; y < shape.ShapeData.Length; y++)
+			if (chamber.CheckCollision(positionY, shape.ShapeDatas[positionX + wind]))
 			{
-				if (chamber.CheckCollision(positionY + y, shape.ShapeDatas[positionX + wind][y]))
-				{
-					return positionX;
-				}
+				return positionX;
 			}
 		}
 
@@ -190,6 +187,11 @@ internal class Day17 : DayX
 			{
 				this.Cleanup(y);
 			}
+		}
+
+		public bool CheckCollision(long y, byte[] shapeLines)
+		{
+			return this.rocks.CheckCollision(y, shapeLines);
 		}
 
 		public bool CheckCollision(long y, int shapeLine)

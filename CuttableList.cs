@@ -5,8 +5,8 @@ using System;
 internal sealed class CuttableList
 {
 	private  byte[] buffer;
-	private long cuttable = 0;
-	private long offset = 0;
+	private long cuttable;
+	private long offset;
 	private long maxSetIndex = -1;
 	private const int bufferLength = 100_000;
 
@@ -92,6 +92,28 @@ internal sealed class CuttableList
 		{
 			this.maxSetIndex = realIndex + shapes.Length - 1;
 		}
+	}
+
+	public unsafe bool CheckCollision(long index, byte[] shapes)
+	{
+		long realIndex = index - this.offset;
+		fixed (byte* pb = this.buffer)
+		{
+			for (int i = 0; i < shapes.Length; i++)
+			{
+				if (realIndex + i > this.maxSetIndex)
+				{
+					return false;
+				}
+
+				if ((pb[realIndex + i] & shapes[i]) > 0)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public unsafe void SetRocks(long index, byte[] shapes)
