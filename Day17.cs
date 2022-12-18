@@ -6,7 +6,7 @@ internal class Day17 : DayX
 {
 	private static bool part1;
 	private static int windIndex;
-	private static int[] winds;
+	private static int[] winds = null!;
 
 	public void Solve(int part)
 	{
@@ -150,8 +150,8 @@ internal class Day17 : DayX
 		public int Width { get; set; }
 
 		public int DownCheckHeight { get; set; }
-		public byte[] ShapeData { get; protected set; }
-		public byte[][] ShapeDatas { get; protected set; }
+		public byte[] ShapeData { get; protected init; }
+		public byte[][] ShapeDatas { get; protected init; }
 
 		protected byte[] ShiftShapeData(int shift)
 		{
