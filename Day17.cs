@@ -11,7 +11,7 @@ internal class Day17 : DayX
 		Day17.part1 = part == 1;
 		using StreamReader reader = this.GetInput();
 		string line = reader.ReadLine()!;
-		int[] winds = line.Select(l => l == '<' ? -1 : 1).ToArray();
+		List<int> winds = line.Select(l => l == '<' ? -1 : 1).ToList();
 
 		List<Shape> shapes = new()
 		{
@@ -79,12 +79,17 @@ internal class Day17 : DayX
 	private int Blow(WindGenerator windGenerator, Shape shape, Chamber chamber, int positionX, long positionY)
 	{
 		int wind = windGenerator.GetWind();
-
+		
 		if (wind == -1)
 		{
 			if (positionX == 0)
 			{
 				return positionX;
+			}
+
+			if (chamber.HighestRock < positionY)
+			{
+				return positionX + wind;
 			}
 
 			for (int y = 0; y < shape.ShapeData.Length; y++)
@@ -93,7 +98,7 @@ internal class Day17 : DayX
 				int shift = positionX - 2 + wind;
 				if (shift >= 0)
 				{
-					if (chamber.CheckCollision(positionY + y, (byte)(shapeLine >> shift)))
+					if (chamber.CheckCollision(positionY + y, shapeLine >> shift))
 					{
 						return positionX;
 					}
@@ -101,7 +106,7 @@ internal class Day17 : DayX
 				else
 				{
 					shift = -shift;
-					if (chamber.CheckCollision(positionY + y, (byte)(shapeLine << shift)))
+					if (chamber.CheckCollision(positionY + y, shapeLine << shift))
 					{
 						return positionX;
 					}
@@ -115,13 +120,18 @@ internal class Day17 : DayX
 				return positionX;
 			}
 
+			if (chamber.HighestRock < positionY)
+			{
+				return positionX + wind;
+			}
+
 			for (int y = 0; y < shape.ShapeData.Length; y++)
 			{
 				byte shapeLine = shape.ShapeData[y];
 				int shift = positionX - 2 + wind;
 				if (shift >= 0)
 				{
-					if (chamber.CheckCollision(positionY + y, (byte)(shapeLine >> shift)))
+					if (chamber.CheckCollision(positionY + y, shapeLine >> shift))
 					{
 						return positionX;
 					}
@@ -129,7 +139,7 @@ internal class Day17 : DayX
 				else
 				{
 					shift = -shift;
-					if (chamber.CheckCollision(positionY + y, (byte)(shapeLine << shift)))
+					if (chamber.CheckCollision(positionY + y, shapeLine << shift))
 					{
 						return positionX;
 					}
@@ -158,7 +168,7 @@ internal class Day17 : DayX
 			int shift = positionX - 2;
 			if (shift >= 0)
 			{
-				if (chamber.CheckCollision(positionY + y - 1, (byte)(shapeLine >> shift)))
+				if (chamber.CheckCollision(positionY + y - 1, shapeLine >> shift))
 				{
 					return true;
 				}
@@ -166,7 +176,7 @@ internal class Day17 : DayX
 			else
 			{
 				shift = -shift;
-				if (chamber.CheckCollision(positionY + y - 1, (byte)(shapeLine << shift)))
+				if (chamber.CheckCollision(positionY + y - 1, shapeLine << shift))
 				{
 					return true;
 				}
@@ -178,10 +188,10 @@ internal class Day17 : DayX
 
 	private class WindGenerator
 	{
-		private int[] Winds { get; }
+		private List<int> Winds { get; }
 		private int index;
 
-		public WindGenerator(int[] winds)
+		public WindGenerator(List<int> winds)
 		{
 			this.Winds = winds;
 		}
@@ -190,7 +200,7 @@ internal class Day17 : DayX
 		{
 			int wind = this.Winds[this.index];
 			this.index++;
-			if (this.index == this.Winds.Length)
+			if (this.index == this.Winds.Count)
 			{
 				this.index = 0;
 			}
@@ -210,8 +220,6 @@ internal class Day17 : DayX
 
 	private class Chamber
 	{
-		private long lowestRelevantRock = -1;
-
 		private readonly CuttableList rocks = new();
 
 		public long HighestRock { get; private set; } = -1;
@@ -230,7 +238,7 @@ internal class Day17 : DayX
 			}
 		}
 
-		public bool CheckCollision(long y, byte shapeLine)
+		public bool CheckCollision(long y, int shapeLine)
 		{
 			return (this.rocks[y] & shapeLine) > 0;
 		}
@@ -238,7 +246,6 @@ internal class Day17 : DayX
 		private void Cleanup(long y)
 		{
 			this.rocks.CutBelow(y);
-			this.lowestRelevantRock = y;
 		}
 	}
 
