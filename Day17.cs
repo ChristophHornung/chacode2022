@@ -5,13 +5,15 @@ namespace Chacode2022;
 internal class Day17 : DayX
 {
 	private static bool part1;
+	private static int windIndex;
 
 	public void Solve(int part)
 	{
+		Day17.windIndex = 0;
 		Day17.part1 = part == 1;
 		using StreamReader reader = this.GetInput();
 		string line = reader.ReadLine()!;
-		List<int> winds = line.Select(l => l == '<' ? -1 : 1).ToList();
+		int[] winds = line.Select(l => l == '<' ? -1 : 1).ToArray();
 
 		List<Shape> shapes = new()
 		{
@@ -24,26 +26,26 @@ internal class Day17 : DayX
 
 		Chamber chamber = new();
 		long shapesCount = Day17.part1 ? 2022 : 1_000_000_000_000;
-		WindGenerator windGenerator = new WindGenerator(winds);
-		Stopwatch sw = Stopwatch.StartNew();
+		var sw = Stopwatch.StartNew();
 		for (long i = 0; i < shapesCount; i++)
 		{
-			if (i % 10_000_000 == 0 && i != 0)
+			if (i % 50_000_000 == 0 && i != 0)
 			{
-				Console.WriteLine(sw.Elapsed * (1_000_000_000_000 / (double)i));
+				TimeSpan ts = sw.Elapsed * (1_000_000_000_000 / (double)i);
+				Console.WriteLine($"{ts}:{DateTime.Now.Add(ts)}");
 			}
 
-			this.PlaceShape(shapes[(int)(i % shapes.Count)], chamber, windGenerator);
+			this.PlaceShape(shapes[(int)(i % shapes.Count)], chamber, winds);
 		}
 
 		this.ReportResult($"{chamber.HighestRock + 1}");
 	}
 
-	private void PlaceShape(Shape shape, Chamber chamber, WindGenerator windGenerator)
+	private void PlaceShape(Shape shape, Chamber chamber, int[] windGenerator)
 	{
-		int positionX = 2;
+		var positionX = 2;
 		long positionY = chamber.HighestRock + 4;
-		bool stopped = false;
+		var stopped = false;
 		while (!stopped)
 		{
 			positionX = this.Blow(windGenerator, shape, chamber, positionX, positionY);
@@ -60,26 +62,21 @@ internal class Day17 : DayX
 
 	private void AddRocks(Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		for (int y = 0; y < shape.ShapeData.Length; y++)
+		for (var y = 0; y < shape.ShapeData.Length; y++)
 		{
-			byte shapeLine = shape.ShapeData[y];
-			int shift = positionX - 2;
-			if (shift >= 0)
-			{
-				chamber.SetRocks(positionY + y, (byte)(shapeLine >> shift));
-			}
-			else
-			{
-				shift = -shift;
-				chamber.SetRocks(positionY + y, (byte)(shapeLine << shift));
-			}
+			byte shapeLine = shape.ShapeDatas[positionX][y];
+			chamber.SetRocks(positionY + y, shapeLine);
 		}
 	}
 
-	private int Blow(WindGenerator windGenerator, Shape shape, Chamber chamber, int positionX, long positionY)
+	private int Blow(int[] windGenerator, Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		int wind = windGenerator.GetWind();
-		
+		int wind = windGenerator[Day17.windIndex++];
+		if (Day17.windIndex == windGenerator.Length)
+		{
+			Day17.windIndex = 0;
+		}
+
 		if (wind == -1)
 		{
 			if (positionX == 0)
@@ -92,24 +89,12 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			for (int y = 0; y < shape.ShapeData.Length; y++)
+			for (var y = 0; y < shape.ShapeData.Length; y++)
 			{
-				byte shapeLine = shape.ShapeData[y];
-				int shift = positionX - 2 + wind;
-				if (shift >= 0)
+				byte shapeLine = shape.ShapeDatas[positionX + wind][y];
+				if (chamber.CheckCollision(positionY + y, shapeLine))
 				{
-					if (chamber.CheckCollision(positionY + y, shapeLine >> shift))
-					{
-						return positionX;
-					}
-				}
-				else
-				{
-					shift = -shift;
-					if (chamber.CheckCollision(positionY + y, shapeLine << shift))
-					{
-						return positionX;
-					}
+					return positionX;
 				}
 			}
 		}
@@ -125,24 +110,12 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			for (int y = 0; y < shape.ShapeData.Length; y++)
+			for (var y = 0; y < shape.ShapeData.Length; y++)
 			{
-				byte shapeLine = shape.ShapeData[y];
-				int shift = positionX - 2 + wind;
-				if (shift >= 0)
+				byte shapeLine = shape.ShapeDatas[positionX + wind][y];
+				if (chamber.CheckCollision(positionY + y, shapeLine))
 				{
-					if (chamber.CheckCollision(positionY + y, shapeLine >> shift))
-					{
-						return positionX;
-					}
-				}
-				else
-				{
-					shift = -shift;
-					if (chamber.CheckCollision(positionY + y, shapeLine << shift))
-					{
-						return positionX;
-					}
+					return positionX;
 				}
 			}
 		}
@@ -162,24 +135,12 @@ internal class Day17 : DayX
 			return false;
 		}
 
-		for (int y = 0; y < shape.DownCheckHeight; y++)
+		for (var y = 0; y < shape.DownCheckHeight; y++)
 		{
-			byte shapeLine = shape.ShapeData[y];
-			int shift = positionX - 2;
-			if (shift >= 0)
+			byte shapeLine = shape.ShapeDatas[positionX][y];
+			if (chamber.CheckCollision(positionY + y - 1, shapeLine))
 			{
-				if (chamber.CheckCollision(positionY + y - 1, shapeLine >> shift))
-				{
-					return true;
-				}
-			}
-			else
-			{
-				shift = -shift;
-				if (chamber.CheckCollision(positionY + y - 1, shapeLine << shift))
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 
@@ -216,9 +177,23 @@ internal class Day17 : DayX
 
 		public int DownCheckHeight { get; set; }
 		public byte[] ShapeData { get; protected set; }
+		public byte[][] ShapeDatas { get; protected set; }
+
+		protected byte[] ShiftShapeData(int shift)
+		{
+			if (shift >= 0)
+			{
+				return this.ShapeData.Select(s => (byte)(s >> shift)).ToArray();
+			}
+			else
+			{
+				shift = -shift;
+				return this.ShapeData.Select(s => (byte)(s << shift)).ToArray();
+			}
+		}
 	}
 
-	private class Chamber
+	private sealed class Chamber
 	{
 		private readonly CuttableList rocks = new();
 
@@ -249,7 +224,7 @@ internal class Day17 : DayX
 		}
 	}
 
-	private class Minus : Shape
+	private sealed class Minus : Shape
 	{
 		public Minus()
 		{
@@ -260,10 +235,17 @@ internal class Day17 : DayX
 			{
 				0b00011110
 			};
+			this.ShapeDatas = new[]
+			{
+				this.ShiftShapeData(-2),
+				this.ShiftShapeData(-1),
+				this.ShiftShapeData(0),
+				this.ShiftShapeData(1)
+			};
 		}
 	}
 
-	private class Plus : Shape
+	private sealed class Plus : Shape
 	{
 		public Plus()
 		{
@@ -276,10 +258,15 @@ internal class Day17 : DayX
 				0b00011100,
 				0b00001000
 			};
+			this.ShapeDatas = new[]
+			{
+				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
+				this.ShiftShapeData(2)
+			};
 		}
 	}
 
-	private class MirrorL : Shape
+	private sealed class MirrorL : Shape
 	{
 		public MirrorL()
 		{
@@ -292,10 +279,15 @@ internal class Day17 : DayX
 				0b00000100,
 				0b00000100
 			};
+			this.ShapeDatas = new[]
+			{
+				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
+				this.ShiftShapeData(2)
+			};
 		}
 	}
 
-	private class Rod : Shape
+	private sealed class Rod : Shape
 	{
 		public Rod()
 		{
@@ -309,10 +301,15 @@ internal class Day17 : DayX
 				0b00010000,
 				0b00010000
 			};
+			this.ShapeDatas = new[]
+			{
+				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
+				this.ShiftShapeData(2), this.ShiftShapeData(3), this.ShiftShapeData(4)
+			};
 		}
 	}
 
-	private class Block : Shape
+	private sealed class Block : Shape
 	{
 		public Block()
 		{
@@ -323,6 +320,11 @@ internal class Day17 : DayX
 			{
 				0b00011000,
 				0b00011000
+			};
+			this.ShapeDatas = new[]
+			{
+				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
+				this.ShiftShapeData(2), this.ShiftShapeData(3)
 			};
 		}
 	}
