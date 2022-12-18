@@ -42,7 +42,10 @@ internal sealed class CuttableList
 			if (realIndex <= b.Length - 1)
 			{
 				b[realIndex] = value;
-				this.maxSetIndex = realIndex;
+				if (this.maxSetIndex < realIndex)
+				{
+					this.maxSetIndex = realIndex;
+				}
 			}
 			else
 			{
@@ -54,51 +57,10 @@ internal sealed class CuttableList
 				this.cuttable = 0;
 				realIndex = index - this.offset;
 				b[realIndex] = value;
-				this.maxSetIndex = realIndex;
-			}
-		}
-	}
-
-	public unsafe void SetRocks(long index, byte[] shapes)
-	{
-		byte[] b = this.buffer;
-		long realIndex = index - this.offset;
-		if (realIndex + shapes.Length <= b.Length)
-		{
-			fixed (byte* pb = b)
-			{
-				for (int i = 0; i < shapes.Length; i++)
+				if (this.maxSetIndex < realIndex)
 				{
-					pb[realIndex + i] |= shapes[i];
+					this.maxSetIndex = realIndex;
 				}
-			}
-
-			if (this.maxSetIndex < realIndex + shapes.Length - 1)
-			{
-				this.maxSetIndex = realIndex + shapes.Length - 1;
-			}
-			
-		}
-		else
-		{
-			byte[] newBuffer = new byte[b.Length];
-			Array.Copy(this.buffer, this.cuttable, newBuffer, 0, this.maxSetIndex + 1 - this.cuttable);
-			this.buffer = newBuffer;
-			b = newBuffer;
-			this.offset += this.cuttable;
-			this.cuttable = 0;
-			realIndex = index - this.offset;
-			fixed (byte* pb = b)
-			{
-				for (int i = 0; i < shapes.Length; i++)
-				{
-					pb[realIndex + i] |= shapes[i];
-				}
-			}
-
-			if (this.maxSetIndex < realIndex + shapes.Length - 1)
-			{
-				this.maxSetIndex = realIndex + shapes.Length - 1;
 			}
 		}
 	}
@@ -107,22 +69,7 @@ internal sealed class CuttableList
 	{
 		byte[] b = this.buffer;
 		long realIndex = index - this.offset;
-		if (realIndex + shapes.Length <= b.Length)
-		{
-			fixed (byte* pb = b)
-			{
-				for (int i = 0; i < shapes.Length; i++)
-				{
-					pb[realIndex + i] = shapes[i];
-				}
-			}
-
-			if (this.maxSetIndex < realIndex + shapes.Length - 1)
-			{
-				this.maxSetIndex = realIndex + shapes.Length - 1;
-			}
-		}
-		else
+		if (realIndex + shapes.Length > b.Length)
 		{
 			byte[] newBuffer = new byte[b.Length];
 			Array.Copy(this.buffer, this.cuttable, newBuffer, 0, this.maxSetIndex + 1 - this.cuttable);
@@ -131,18 +78,48 @@ internal sealed class CuttableList
 			this.offset += this.cuttable;
 			this.cuttable = 0;
 			realIndex = index - this.offset;
-			fixed (byte* pb = b)
+		}
+		
+		fixed (byte* pb = b)
+		{
+			for (int i = 0; i < shapes.Length; i++)
 			{
-				for (int i = 0; i < shapes.Length; i++)
-				{
-					pb[realIndex + i] = shapes[i];
-				}
+				pb[realIndex + i] = shapes[i];
 			}
+		}
 
-			if (this.maxSetIndex < realIndex + shapes.Length - 1)
+		if (this.maxSetIndex < realIndex + shapes.Length - 1)
+		{
+			this.maxSetIndex = realIndex + shapes.Length - 1;
+		}
+	}
+
+	public unsafe void SetRocks(long index, byte[] shapes)
+	{
+		byte[] b = this.buffer;
+		long realIndex = index - this.offset;
+		if (realIndex + shapes.Length > b.Length)
+		{
+			byte[] newBuffer = new byte[b.Length];
+			Array.Copy(this.buffer, this.cuttable, newBuffer, 0, this.maxSetIndex + 1 - this.cuttable);
+			this.buffer = newBuffer;
+			b = newBuffer;
+			this.offset += this.cuttable;
+			this.cuttable = 0;
+			realIndex = index - this.offset;
+		}
+		
+		fixed (byte* pb = b)
+		{
+			for (int i = 0; i < shapes.Length; i++)
 			{
-				this.maxSetIndex = realIndex + shapes.Length - 1;
+				pb[realIndex + i] |= shapes[i];
 			}
+		}
+
+		if (this.maxSetIndex < realIndex + shapes.Length - 1)
+		{
+			this.maxSetIndex = realIndex + shapes.Length - 1;
 		}
 	}
 }

@@ -63,10 +63,7 @@ internal class Day17 : DayX
 
 	private void AddRocks(Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		for (int y = 0; y < shape.ShapeData.Length; y++)
-		{
-			chamber.SetRocks(positionY + y, shape.ShapeDatas[positionX][y]);
-		}
+		chamber.SetRocks(positionY,shape.ShapeDatas[positionX]);
 	}
 
 	private int Blow(Shape shape, Chamber chamber, int positionX, long positionY)
@@ -173,21 +170,25 @@ internal class Day17 : DayX
 
 		public long HighestRock { get; private set; } = -1;
 
-		public void SetRocks(long y, byte shapeLine)
+		public void SetRocks(long y, byte[] shapeLines)
 		{
 			if (y > this.HighestRock)
 			{
-				this.rocks[y] = shapeLine;
-				this.HighestRock = y;
+				this.HighestRock = y + shapeLines.Length - 1;
+				this.rocks.SetRocksDirect(y, shapeLines);
+				return;
 			}
-			else
-			{
-				this.rocks[y] |= shapeLine;
 
-				if (this.rocks[y] == 0b01111111)
-				{
-					this.Cleanup(y);
-				}
+			if (y + shapeLines.Length - 1 > this.HighestRock)
+			{
+				this.HighestRock = y + shapeLines.Length - 1;
+			}
+
+			this.rocks.SetRocks(y, shapeLines);
+
+			if (this.rocks[y] == 0b01111111)
+			{
+				this.Cleanup(y);
 			}
 		}
 
