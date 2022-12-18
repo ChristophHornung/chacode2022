@@ -147,7 +147,7 @@ internal class Day17 : DayX
 	private abstract class Shape
 	{
 		public int Height { get; set; }
-		public int Width { get; set; }
+		public int Width { get; init; }
 
 		public int DownCheckHeight { get; set; }
 		public byte[] ShapeData { get; protected init; }
