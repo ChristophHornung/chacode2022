@@ -63,7 +63,8 @@ internal class Day17 : DayX
 
 	private void AddRocks(Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		chamber.SetRocks(positionY,shape.ShapeDatas[positionX]);
+		chamber.SetRocks(positionY,shape.ShapeDatasI[positionX], shape.Height);
+		//chamber.SetRocks(positionY,shape.ShapeDatas[positionX]);
 	}
 
 	private int Blow(Shape shape, Chamber chamber, int positionX, long positionY)
@@ -86,7 +87,7 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			if (chamber.CheckCollision(positionY, shape.ShapeDatas[positionX + wind]))
+			if (chamber.CheckCollision(positionY, shape.ShapeDatasI[positionX + wind], shape.Height))
 			{
 				return positionX;
 			}
@@ -103,7 +104,7 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			if (chamber.CheckCollision(positionY, shape.ShapeDatas[positionX + wind]))
+			if (chamber.CheckCollision(positionY, shape.ShapeDatasI[positionX + wind], shape.Height))
 			{
 				return positionX;
 			}
@@ -124,7 +125,7 @@ internal class Day17 : DayX
 			return false;
 		}
 
-		return chamber.CheckCollision(positionY - 1, shape.ShapeDatas[positionX]);
+		return chamber.CheckCollision(positionY - 1, shape.ShapeDatasI[positionX], shape.Height);
 	}
 
 	private abstract class Shape
@@ -135,6 +136,7 @@ internal class Day17 : DayX
 		public int DownCheckHeight { get; set; }
 		public byte[] ShapeData { get; protected init; }
 		public byte[][] ShapeDatas { get; protected init; }
+		public int[] ShapeDatasI { get; protected init; }
 
 		protected byte[] ShiftShapeData(int shift)
 		{
@@ -155,7 +157,27 @@ internal class Day17 : DayX
 		private readonly CuttableList rocks = new();
 
 		public long HighestRock { get; private set; } = -1;
+		public void SetRocks(long y, int shape, int shapeLines)
+		{
+			if (y > this.HighestRock)
+			{
+				this.HighestRock = y + shapeLines - 1;
+				this.rocks.SetRocksDirect(y, shape, shapeLines);
+				return;
+			}
 
+			if (y + shapeLines - 1 > this.HighestRock)
+			{
+				this.HighestRock = y + shapeLines - 1;
+			}
+
+			this.rocks.SetRocks(y, shape, shapeLines);
+
+			if (this.rocks[y] == 0b01111111)
+			{
+				this.Cleanup(y);
+			}
+		}
 		public void SetRocks(long y, byte[] shapeLines)
 		{
 			if (y > this.HighestRock)
@@ -176,6 +198,10 @@ internal class Day17 : DayX
 			{
 				this.Cleanup(y);
 			}
+		}
+		public bool CheckCollision(long y, int shape, int shapeLines)
+		{
+			return this.rocks.CheckCollision(y, shape, shapeLines);
 		}
 
 		public bool CheckCollision(long y, byte[] shapeLines)
@@ -212,6 +238,7 @@ internal class Day17 : DayX
 				this.ShiftShapeData(0),
 				this.ShiftShapeData(1)
 			};
+			this.ShapeDatasI = this.ShapeDatas.Select(s => (int)s[0]).ToArray();
 		}
 	}
 
@@ -233,6 +260,7 @@ internal class Day17 : DayX
 				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
 				this.ShiftShapeData(2)
 			};
+			this.ShapeDatasI = this.ShapeDatas.Select(s =>  s[0] << 16 | s[1] << 8 | s[2]).ToArray();
 		}
 	}
 
@@ -254,6 +282,8 @@ internal class Day17 : DayX
 				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
 				this.ShiftShapeData(2)
 			};
+
+			this.ShapeDatasI = this.ShapeDatas.Select(s =>  s[2] << 16 | s[1] << 8 | s[0]).ToArray();
 		}
 	}
 
@@ -276,6 +306,7 @@ internal class Day17 : DayX
 				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
 				this.ShiftShapeData(2), this.ShiftShapeData(3), this.ShiftShapeData(4)
 			};
+			this.ShapeDatasI = this.ShapeDatas.Select(s => s[0] << 24 | s[1] << 16 | s[2] << 8 | s[3]).ToArray();
 		}
 	}
 
@@ -296,6 +327,7 @@ internal class Day17 : DayX
 				this.ShiftShapeData(-2), this.ShiftShapeData(-1), this.ShiftShapeData(0), this.ShiftShapeData(1),
 				this.ShiftShapeData(2), this.ShiftShapeData(3)
 			};
+			this.ShapeDatasI = this.ShapeDatas.Select(s => s[0] << 8 | s[1]).ToArray();
 		}
 	}
 }
