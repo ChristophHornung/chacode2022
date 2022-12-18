@@ -32,6 +32,15 @@ internal class Day18 : DayX
 				else
 				{
 					surfaceFaces++;
+					HashSet<FaceSide> reachable =
+						Enum.GetValues<FaceSide>().Where(s => s != side && s != this.GetOpposite(side)).ToHashSet();
+					foreach (FaceSide faceSide in reachable)
+					{
+						if (this.IsWall(positions, position, side, faceSide))
+						{
+							connections.Add(position.GetBlockingVoxelPosition(side, faceSide));
+						}
+					}
 				}
 			}
 
@@ -100,20 +109,24 @@ internal class Day18 : DayX
 			
 			foreach (FaceSide faceSide in reachable)
 			{
+				(Voxel, FaceSide) destination;
 				if (this.IsWall(positions, position.Position, onFace, faceSide))
 				{
 					// We walk on the wall.
-					next.Enqueue((voxels[position.Position.GetBlockingVoxelPosition(onFace, faceSide)], this.GetOpposite(faceSide)));
+					destination = (voxels[position.Position.GetBlockingVoxelPosition(onFace, faceSide)],
+						this.GetOpposite(faceSide));
 				}
 				else if (this.Connects(positions, position.Position, faceSide))
 				{
 					// We walk to another voxel.
-					next.Enqueue((voxels[position.Position.GetConnectingVoxelPosition(faceSide)], faceSide));
+					destination = (voxels[position.Position.GetConnectingVoxelPosition(faceSide)], onFace);
 				}
 				else
 				{
-					next.Enqueue((position, faceSide));
+					destination = (position, faceSide);
 				}
+
+				next.Enqueue(destination);
 			}
 		}
 	}
