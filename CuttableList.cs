@@ -23,28 +23,31 @@ internal class CuttableList
 		get
 		{
 			long realIndex = index - this.offset;
-			if (realIndex > this.buffer.Length - 1)
+			byte[] b = this.buffer;
+			if (realIndex > b.Length - 1)
 			{
 				return 0b0;
 			}
 
-			return this.buffer[realIndex];
+			return b[realIndex];
 		}
 
 		set
 		{
+			byte[] b = this.buffer;
 			long realIndex = index - this.offset;
-			if (realIndex > this.buffer.Length - 1)
+			if (realIndex > b.Length - 1)
 			{
-				byte[] newBuffer = new byte[CuttableList.bufferLength];
+				byte[] newBuffer = new byte[b.Length];
 				Array.Copy(this.buffer, this.cuttable, newBuffer, 0, this.maxSetIndex + 1 - this.cuttable);
 				this.buffer = newBuffer;
+				b = newBuffer;
 				this.offset += this.cuttable;
 				this.cuttable = 0;
 				realIndex = index - this.offset;
 			}
 
-			this.buffer[realIndex] = value;
+			b[realIndex] = value;
 			this.maxSetIndex = realIndex;
 		}
 	}

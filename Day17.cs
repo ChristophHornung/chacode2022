@@ -6,6 +6,7 @@ internal class Day17 : DayX
 {
 	private static bool part1;
 	private static int windIndex;
+	private static int[] winds;
 
 	public void Solve(int part)
 	{
@@ -13,7 +14,7 @@ internal class Day17 : DayX
 		Day17.part1 = part == 1;
 		using StreamReader reader = this.GetInput();
 		string line = reader.ReadLine()!;
-		int[] winds = line.Select(l => l == '<' ? -1 : 1).ToArray();
+		Day17.winds = line.Select(l => l == '<' ? -1 : 1).ToArray();
 
 		List<Shape> shapes = new()
 		{
@@ -26,7 +27,7 @@ internal class Day17 : DayX
 
 		Chamber chamber = new();
 		long shapesCount = Day17.part1 ? 2022 : 1_000_000_000_000;
-		var sw = Stopwatch.StartNew();
+		Stopwatch sw = Stopwatch.StartNew();
 		for (long i = 0; i < shapesCount; i++)
 		{
 			if (i % 50_000_000 == 0 && i != 0)
@@ -35,20 +36,20 @@ internal class Day17 : DayX
 				Console.WriteLine($"{ts}:{DateTime.Now.Add(ts)}");
 			}
 
-			this.PlaceShape(shapes[(int)(i % shapes.Count)], chamber, winds);
+			this.PlaceShape(shapes[(int)(i % shapes.Count)], chamber);
 		}
 
 		this.ReportResult($"{chamber.HighestRock + 1}");
 	}
 
-	private void PlaceShape(Shape shape, Chamber chamber, int[] windGenerator)
+	private void PlaceShape(Shape shape, Chamber chamber)
 	{
-		var positionX = 2;
+		int positionX = 2;
 		long positionY = chamber.HighestRock + 4;
-		var stopped = false;
+		bool stopped = false;
 		while (!stopped)
 		{
-			positionX = this.Blow(windGenerator, shape, chamber, positionX, positionY);
+			positionX = this.Blow(shape, chamber, positionX, positionY);
 			stopped = this.IsStopped(shape, chamber, positionX, positionY);
 
 			if (!stopped)
@@ -62,16 +63,16 @@ internal class Day17 : DayX
 
 	private void AddRocks(Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		for (var y = 0; y < shape.ShapeData.Length; y++)
+		for (int y = 0; y < shape.ShapeData.Length; y++)
 		{
 			chamber.SetRocks(positionY + y, shape.ShapeDatas[positionX][y]);
 		}
 	}
 
-	private int Blow(int[] windGenerator, Shape shape, Chamber chamber, int positionX, long positionY)
+	private int Blow(Shape shape, Chamber chamber, int positionX, long positionY)
 	{
-		int wind = windGenerator[Day17.windIndex++];
-		if (Day17.windIndex == windGenerator.Length)
+		int wind = Day17.winds[Day17.windIndex++];
+		if (Day17.windIndex == Day17.winds.Length)
 		{
 			Day17.windIndex = 0;
 		}
@@ -88,7 +89,7 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			for (var y = 0; y < shape.ShapeData.Length; y++)
+			for (int y = 0; y < shape.ShapeData.Length; y++)
 			{
 				if (chamber.CheckCollision(positionY + y, shape.ShapeDatas[positionX + wind][y]))
 				{
@@ -108,7 +109,7 @@ internal class Day17 : DayX
 				return positionX + wind;
 			}
 
-			for (var y = 0; y < shape.ShapeData.Length; y++)
+			for (int y = 0; y < shape.ShapeData.Length; y++)
 			{
 				if (chamber.CheckCollision(positionY + y, shape.ShapeDatas[positionX + wind][y]))
 				{
@@ -132,7 +133,7 @@ internal class Day17 : DayX
 			return false;
 		}
 
-		for (var y = 0; y < shape.DownCheckHeight; y++)
+		for (int y = 0; y < shape.DownCheckHeight; y++)
 		{
 			if (chamber.CheckCollision(positionY + y - 1, shape.ShapeDatas[positionX][y]))
 			{
