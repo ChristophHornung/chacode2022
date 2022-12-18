@@ -95,39 +95,17 @@ internal class Day18 : DayX
 			position.VisitedFaces[(int)onFace] = true;
 			position.Visited = true;
 
-			HashSet<FaceSide> reachable = Enum.GetValues<FaceSide>().Where(s => s != onFace).ToHashSet();
-			switch (onFace)
-			{
-				case FaceSide.Left:
-					reachable.Remove(FaceSide.Right);
-					break;
-				case FaceSide.Right:
-					reachable.Remove(FaceSide.Left);
-					break;
-				case FaceSide.Back:
-					reachable.Remove(FaceSide.Front);
-					break;
-				case FaceSide.Front:
-					reachable.Remove(FaceSide.Back);
-					break;
-				case FaceSide.Down:
-					reachable.Remove(FaceSide.Up);
-					break;
-				case FaceSide.Up:
-					reachable.Remove(FaceSide.Down);
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(onFace), onFace, null);
-			}
-
+			HashSet<FaceSide> reachable =
+				Enum.GetValues<FaceSide>().Where(s => s != onFace && s != this.GetOpposite(onFace)).ToHashSet();
+			
 			foreach (FaceSide faceSide in reachable)
 			{
-				if (IsWall(positions,position.Position, onFace, faceSide))
+				if (this.IsWall(positions, position.Position, onFace, faceSide))
 				{
 					// We walk on the wall.
-					next.Enqueue((voxels[position.Position.GetBlockingVoxelPosition(onFace,faceSide)], GetOpposite(faceSide)));
+					next.Enqueue((voxels[position.Position.GetBlockingVoxelPosition(onFace, faceSide)], this.GetOpposite(faceSide)));
 				}
-				else if (Connects(positions, position.Position, faceSide))
+				else if (this.Connects(positions, position.Position, faceSide))
 				{
 					// We walk to another voxel.
 					next.Enqueue((voxels[position.Position.GetConnectingVoxelPosition(faceSide)], faceSide));
@@ -172,8 +150,8 @@ internal class Day18 : DayX
 			{
 				FaceSide.Left => this with {X = this.X - 1},
 				FaceSide.Right => this with {X = this.X + 1},
-				FaceSide.Back => this with {Y = this.Y - 1},
-				FaceSide.Front => this with {Y = this.Y + 1},
+				FaceSide.Back => this with {Y = this.Y + 1},
+				FaceSide.Front => this with {Y = this.Y - 1},
 				FaceSide.Down => this with {Z = this.Z - 1},
 				FaceSide.Up => this with {Z = this.Z + 1},
 				_ => throw new ArgumentOutOfRangeException()
@@ -182,7 +160,7 @@ internal class Day18 : DayX
 
 		public Position GetBlockingVoxelPosition(FaceSide onSide, FaceSide movingTo)
 		{
-			return GetConnectingVoxelPosition(onSide).GetConnectingVoxelPosition(movingTo);
+			return this.GetConnectingVoxelPosition(onSide).GetConnectingVoxelPosition(movingTo);
 		}
 	}
 
