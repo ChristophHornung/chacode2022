@@ -68,24 +68,22 @@ internal class Day17 : DayX
 
 	private void PlaceShape(Shape shape, Chamber chamber)
 	{
-		int positionX = 2;
+		int positionX = Day17.preCalcWinds[shape.Width][Day17.windIndex];
+		Day17.windIndex += 4;
+		Day17.windIndex %= Day17.winds.Length;
 		long positionY = chamber.HighestRock + 1;
-		bool stopped = false;
-		bool first = true;
+
+		bool stopped = this.IsStopped(shape, chamber, positionX, positionY);
+
+		if (!stopped)
+		{
+			positionY--;
+		}
+
 		while (!stopped)
 		{
-			if (first)
-			{
-				positionX = Day17.preCalcWinds[shape.Width][Day17.windIndex];
-				Day17.windIndex += 4;
-				Day17.windIndex %= Day17.winds.Length;
-				first = false;
-			}
-			else
-			{
-				positionX = this.Blow(shape, chamber, positionX, positionY);
-			}
-			
+			positionX = this.Blow(shape, chamber, positionX, positionY);
+
 			stopped = this.IsStopped(shape, chamber, positionX, positionY);
 
 			if (!stopped)
