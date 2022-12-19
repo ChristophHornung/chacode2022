@@ -7,6 +7,29 @@ internal class Day17 : DayX
 	private static bool part1;
 	private static int windIndex;
 	private static int[] winds = null!;
+	private static int[][] preCalcWinds = null!;
+
+	private static void PreCalcWinds()
+	{
+		Day17.preCalcWinds = new int[6][];
+		for (int w = 1; w < 5; w++)
+		{
+			Day17.preCalcWinds[w] = new int[Day17.winds.Length];
+			for (int i = 0; i < Day17.winds.Length; i++)
+			{
+				int p = 2;
+				for (int add = 0; add < 4; add++)
+				{
+					int wind = Day17.winds[(i + add)%Day17.winds.Length];
+					p += wind;
+					p = Math.Min(6 - w + 1, Math.Max(0, p));
+				}
+
+				Day17.preCalcWinds[w][i] = p;
+			}
+		}
+		
+	}
 
 	public void Solve(int part)
 	{
@@ -15,6 +38,7 @@ internal class Day17 : DayX
 		using StreamReader reader = this.GetInput();
 		string line = reader.ReadLine()!;
 		Day17.winds = line.Select(l => l == '<' ? -1 : 1).ToArray();
+		Day17.PreCalcWinds();
 
 		List<Shape> shapes = new()
 		{
@@ -45,11 +69,23 @@ internal class Day17 : DayX
 	private void PlaceShape(Shape shape, Chamber chamber)
 	{
 		int positionX = 2;
-		long positionY = chamber.HighestRock + 4;
+		long positionY = chamber.HighestRock + 1;
 		bool stopped = false;
+		bool first = true;
 		while (!stopped)
 		{
-			positionX = this.Blow(shape, chamber, positionX, positionY);
+			if (first)
+			{
+				positionX = Day17.preCalcWinds[shape.Width][Day17.windIndex];
+				Day17.windIndex += 4;
+				Day17.windIndex %= Day17.winds.Length;
+				first = false;
+			}
+			else
+			{
+				positionX = this.Blow(shape, chamber, positionX, positionY);
+			}
+			
 			stopped = this.IsStopped(shape, chamber, positionX, positionY);
 
 			if (!stopped)
