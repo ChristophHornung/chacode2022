@@ -15,14 +15,15 @@ internal class DayX
 		return reader;
 	}
 
-	private int GetDay()
-	{
-		int day = int.Parse(this.GetType().Name[3..]);
-		return day;
-	}
-
 	protected void ReportResult(string result)
 	{
 		Console.WriteLine($"Day {this.GetDay()} {result}");
+	}
+
+	private int GetDay()
+	{
+		string typeName = this.GetType().Name;
+		int day = int.Parse(typeName[(typeName.IndexOf('y') + 1)..]);
+		return day;
 	}
 }
