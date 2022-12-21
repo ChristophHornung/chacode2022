@@ -76,7 +76,7 @@ internal class V2Day17 : DayX
 
 		if (!stopped)
 		{
-			below = below.Next;
+			below = below!.Next;
 		}
 
 		while (!stopped)
