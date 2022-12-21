@@ -81,7 +81,7 @@ internal class V2Day17 : DayX
 
 		while (!stopped)
 		{
-			positionX = this.Blow(shape, chamber, positionX, below);
+			positionX = this.Blow(shape, positionX, below);
 
 			stopped = this.IsStopped(shape, positionX, below);
 
@@ -138,7 +138,7 @@ internal class V2Day17 : DayX
 		}
 	}
 
-	private int Blow(Shape shape, Chamber chamber, int positionX, Chamber.Line? lineBelow)
+	private int Blow(Shape shape, int positionX, Chamber.Line? lineBelow)
 	{
 		int wind = V2Day17.winds[V2Day17.windIndex++];
 		if (V2Day17.windIndex == V2Day17.winds.Length)
