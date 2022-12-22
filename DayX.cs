@@ -20,6 +20,11 @@ internal class DayX
 		Console.WriteLine($"Day {this.GetDay()} {result}");
 	}
 
+	protected void ReportResult(int result)
+	{
+		ReportResult(result.ToString());
+	}
+
 	private int GetDay()
 	{
 		string typeName = this.GetType().Name;
