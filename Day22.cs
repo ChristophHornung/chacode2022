@@ -218,7 +218,7 @@ internal class Day22 : DayX
 				int steps = int.Parse(num);
 				for (int i = 0; i < steps; i++)
 				{
-					if (!position.GetNextV2(facing, faces).HasWall)
+					//if (!position.GetNextV2(facing, faces).HasWall)
 					{
 						position = position.GetNext(facing);
 					}
@@ -334,55 +334,55 @@ internal class Day22 : DayX
 			return this.Position.ToString();
 		}
 
-		public (Position position, Direction facing) GetNextV2(Direction facing, Dictionary<Position, Face> faces)
-		{
-			Position next = this.GetNext(facing).Position;
-			if (next == null)
-			{
-				// we have to move to a different face
-				Face current =
-					faces[
-						new Position(this.Position.X - (this.Position.X % Day22.faceSize),
-							this.Position.Y - (this.Position.Y % Day22.faceSize))];
-				switch (facing)
-				{
-					case Direction.Right:
-						return 
-							(
-								this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)??
-								this.WalkFaces(current,this.Position,Direction.Top,Direction.Right,Direction.Bottom,Direction.Top,false)??
-								this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)??
-								this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)
-							 )!.Value;
-						break;
-					case Direction.Bottom:
-						break;
-					case Direction.Left:
-						if (current.Right?.Right != null)
-						{
-							next = current.Right.Right.GetEdgePosition(Direction.Right, this.Position.Y % Day22.faceSize);
-						}
-						else if (current.Bottom?.Left != null)
-						{
-							next = current.Bottom.Left.GetEdgePosition(Direction.Top, this.Position.Y % Day22.faceSize);
-							facing = Direction.Bottom;
-						}
-						else if (current.Top?.Left != null)
-						{
-							next = current.Top.Left.GetEdgePosition(Direction.Bottom,
-								Day22.faceSize - (this.Position.Y % Day22.faceSize));
-							facing = Direction.Top;
-						}
-						break;
-					case Direction.Top:
-						break;
-					default:
-						throw new ArgumentOutOfRangeException(nameof(facing), facing, null);
-				}
-			}
+		//public (Position position, Direction facing) GetNextV2(Direction facing, Dictionary<Position, Face> faces)
+		//{
+		//	Position next = this.GetNext(facing).Position;
+		//	if (next == null)
+		//	{
+		//		// we have to move to a different face
+		//		Face current =
+		//			faces[
+		//				new Position(this.Position.X - (this.Position.X % Day22.faceSize),
+		//					this.Position.Y - (this.Position.Y % Day22.faceSize))];
+		//		switch (facing)
+		//		{
+		//			case Direction.Right:
+		//				return 
+		//					(
+		//						this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)??
+		//						this.WalkFaces(current,this.Position,Direction.Top,Direction.Right,Direction.Bottom,Direction.Top,false)??
+		//						this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)??
+		//						this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)
+		//					 )!.Value;
+		//				break;
+		//			case Direction.Bottom:
+		//				break;
+		//			case Direction.Left:
+		//				if (current.Right?.Right != null)
+		//				{
+		//					next = current.Right.Right.GetEdgePosition(Direction.Right, this.Position.Y % Day22.faceSize);
+		//				}
+		//				else if (current.Bottom?.Left != null)
+		//				{
+		//					next = current.Bottom.Left.GetEdgePosition(Direction.Top, this.Position.Y % Day22.faceSize);
+		//					facing = Direction.Bottom;
+		//				}
+		//				else if (current.Top?.Left != null)
+		//				{
+		//					next = current.Top.Left.GetEdgePosition(Direction.Bottom,
+		//						Day22.faceSize - (this.Position.Y % Day22.faceSize));
+		//					facing = Direction.Top;
+		//				}
+		//				break;
+		//			case Direction.Top:
+		//				break;
+		//			default:
+		//				throw new ArgumentOutOfRangeException(nameof(facing), facing, null);
+		//		}
+		//	}
 
-			return (facing, next);
-		}
+		//	return (facing, next);
+		//}
 
 		private (Position next, Direction facing)? WalkFaces(Face face, Position p, Direction a, Direction b, Direction enteringFaceAt, Direction facingTo, bool reverseOrder)
 		{

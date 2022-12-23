@@ -25,6 +25,11 @@ internal class DayX
 		ReportResult(result.ToString());
 	}
 
+	protected void ReportResult(long result)
+	{
+		ReportResult(result.ToString());
+	}
+
 	private int GetDay()
 	{
 		string typeName = this.GetType().Name;
