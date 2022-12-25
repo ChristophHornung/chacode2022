@@ -1,5 +1,7 @@
 ﻿namespace Chacode2022;
 
+using System.Diagnostics;
+
 internal class Day22 : DayX
 {
 	public enum Direction
@@ -31,6 +33,11 @@ internal class Day22 : DayX
 			for (var index = 0; index < line.Length; index++)
 			{
 				char c = line[index];
+				if (c == ' ')
+				{
+					continue;
+				}
+
 				Tile t = new Tile(new Position(index + 1, y));
 				t.Left = left!;
 				left = t;
@@ -39,15 +46,10 @@ internal class Day22 : DayX
 					t.Left.Right = t;
 				}
 
-				switch (c)
+				tiles.Add(t.Position, t);
+				if (c == '#')
 				{
-					case '.':
-						tiles.Add(t.Position, t);
-						break;
-					case '#':
-						tiles.Add(t.Position, t);
-						t.HasWall = true;
-						break;
+					t.HasWall = true;
 				}
 			}
 
@@ -72,46 +74,6 @@ internal class Day22 : DayX
 
 		Tile start = tiles.Values.MinBy(t => (t.Position.Y * (maxX + 1)) + t.Position.X)!;
 
-		Position pos = start.Position;
-
-		Dictionary<Position, Face> faces = new();
-
-		Face? leftFace = null;
-		Face? topFace = null;
-
-		while (faces.Count < 6)
-		{
-			Face current = new Face(pos, Day22.faceSize);
-			if (leftFace != null)
-			{
-				current.Left = leftFace;
-				current.Left.Right = current;
-			}
-
-			if (topFace != null)
-			{
-				current.Top = topFace;
-				current.Top.Bottom = current;
-			}
-
-			faces.Add(current.Position, current);
-			if (faces.Count < 6)
-			{
-				if (tiles.ContainsKey(pos with { X = pos.X + Day22.faceSize }))
-				{
-					pos = pos with { X = pos.X + Day22.faceSize };
-					leftFace = current;
-					topFace = null;
-				}
-				else
-				{
-					pos = tiles.Keys.Where(k => k.Y == pos.Y + Day22.faceSize).MinBy(p => p.X)!;
-					topFace = current;
-					leftFace = null;
-				}
-			}
-		}
-
 		if (isPart1)
 		{
 			for (int i = 1; i <= maxY; i++)
@@ -134,29 +96,114 @@ internal class Day22 : DayX
 		}
 		else
 		{
-			foreach (Face face in faces.Values)
+			// The cube is
+			//     0 0 1
+			//     0 5 0
+			//     1 1 1
+			//01     A B
+			//51     C
+			//101  E D
+			//151  F
+
+			for (int i = 1; i <= 50; i++)
 			{
-				for (int i = 0; i < Day22.faceSize; i++)
+				Tile source;
+				Tile target;
 				{
-					tiles[face.GetEdgePosition(Direction.Left, i)].Left =
-						tiles[face.GetNext(Direction.Left).GetEdgePosition(Direction.Right, i)];
-					tiles[face.GetEdgePosition(Direction.Right, i)].Right =
-						tiles[face.GetNext(Direction.Right).GetEdgePosition(Direction.Left, i)];
-					tiles[face.GetEdgePosition(Direction.Top, i)].Top =
-						tiles[face.GetNext(Direction.Top).GetEdgePosition(Direction.Bottom, i)];
-					tiles[face.GetEdgePosition(Direction.Bottom, i)].Bottom =
-						tiles[face.GetNext(Direction.Bottom).GetEdgePosition(Direction.Top, i)];
+					// A top -> F Left
+					source = tiles[new Position(50 + i, 1)];
+					target = tiles[new Position(1, 150 + i)];
+					source.Top = target;
+					source.TopResultDirection = Direction.Right;
+					target.Left = source;
+					target.LeftResultDirection = Direction.Bottom;
+				}
+
+				{
+					// A left -> E Left Reverse
+					source = tiles[new Position(51, i)];
+					target = tiles[new Position(1, 151 - i)];
+					source.Left = target;
+					source.LeftResultDirection = Direction.Right;
+					target.Left = source;
+					target.LeftResultDirection = Direction.Right;
+				}
+				{
+					// B top -> F Bottom
+					source = tiles[new Position(100 + i, 1)];
+					target = tiles[new Position(i, 200)];
+					source.Top = target;
+					source.TopResultDirection = Direction.Top;
+					target.Bottom = source;
+					target.BottomResultDirection = Direction.Bottom;
+				}
+				{
+					// B right -> D Right Reverse
+					source = tiles[new Position(150, i)];
+					target = tiles[new Position(100, 151 - i)];
+					source.Right = target;
+					source.RightResultDirection = Direction.Left;
+					target.Right = source;
+					target.RightResultDirection = Direction.Left;
+				}
+				{
+					// B bottom -> C Right
+					source = tiles[new Position(100 + i, 50)];
+					target = tiles[new Position(100, 50 + i)];
+					source.Bottom = target;
+					source.BottomResultDirection = Direction.Left;
+					target.Right = source;
+					target.RightResultDirection = Direction.Top;
+				}
+				{
+					// D bottom -> F Right
+					source = tiles[new Position(50 + i, 150)];
+					target = tiles[new Position(50, 150 + i)];
+					source.Bottom = target;
+					source.BottomResultDirection = Direction.Left;
+					target.Right = source;
+					target.RightResultDirection = Direction.Top;
+				}
+				{
+					// E top -> C Left
+					source = tiles[new Position(i, 101)];
+					target = tiles[new Position(51, 50 + i)];
+					source.Top = tiles[new Position(51, 50 + i)];
+					source.TopResultDirection = Direction.Right;
+					target.Left = source;
+					target.LeftResultDirection = Direction.Bottom;
 				}
 			}
 		}
 
+		Debug.Assert(Direction.Bottom.Clockwise() == Direction.Left);
+		Debug.Assert(Direction.Left.Clockwise() == Direction.Top);
+		Debug.Assert(Direction.Top.Clockwise() == Direction.Right);
+		Debug.Assert(Direction.Right.Clockwise() == Direction.Bottom);
+
+		Debug.Assert(Direction.Bottom == Direction.Left.AntiClockwise());
+		Debug.Assert(Direction.Left == Direction.Top.AntiClockwise());
+		Debug.Assert(Direction.Top == Direction.Right.AntiClockwise());
+		Debug.Assert(Direction.Right == Direction.Bottom.AntiClockwise());
+
+		foreach (var tile in tiles.Values)
+		{
+			Debug.Assert(tile.Right != null);
+			Debug.Assert(tile.Top != null);
+			Debug.Assert(tile.Left != null);
+			Debug.Assert(tile.Bottom != null);
+		}
 
 		string path = reader.ReadLine()!;
 
-		this.Walk(path, start);
+		(Tile position, Direction facing) = this.Walk(path, start);
+		Debug.Assert(this.Walk("L1L1L1", start).position == start);
+
+		this.ReportResult($"{position} {facing}");
+		this.ReportResult(position.Position.Y * 1000 + position.Position.X * 4 + (int)facing);
 	}
 
-	private void Walk(string path, Tile position)
+	private (Tile position, Direction facing) Walk(string path, Tile position)
 	{
 		Direction facing = Direction.Right;
 		string num = string.Empty;
@@ -168,12 +215,15 @@ internal class Day22 : DayX
 			}
 			else
 			{
-				int steps = int.Parse(num);
-				for (int i = 0; i < steps; i++)
+				if (num != string.Empty)
 				{
-					if (!position.GetNext(facing).HasWall)
+					int steps = int.Parse(num);
+					for (int i = 0; i < steps; i++)
 					{
-						position = position.GetNext(facing);
+						if (!position.GetNextTile(facing).HasWall)
+						{
+							(position, facing) = position.GetNext(facing);
+						}
 					}
 				}
 
@@ -193,115 +243,14 @@ internal class Day22 : DayX
 		int lastSteps = int.Parse(num);
 		for (int i = 0; i < lastSteps; i++)
 		{
-			if (!position.GetNext(facing).HasWall)
+			if (!position.GetNextTile(facing).HasWall)
 			{
-				position = position.GetNext(facing);
+				(position, facing) = position.GetNext(facing);
 			}
 		}
 
-		this.ReportResult($"{position} {facing}");
-		this.ReportResult(position.Position.Y * 1000 + position.Position.X * 4 + (int)facing);
+		return (position, facing);
 	}
-
-	private void WalkV2(string path, Tile position, Dictionary<Position, Face> faces)
-	{
-		Direction facing = Direction.Right;
-		string num = string.Empty;
-		foreach (char c in path)
-		{
-			if (int.TryParse(c.ToString(), out _))
-			{
-				num += c;
-			}
-			else
-			{
-				int steps = int.Parse(num);
-				for (int i = 0; i < steps; i++)
-				{
-					//if (!position.GetNextV2(facing, faces).HasWall)
-					{
-						position = position.GetNext(facing);
-					}
-				}
-
-				num = string.Empty;
-				switch (c)
-				{
-					case 'L':
-						facing = facing.AntiClockwise();
-						break;
-					case 'R':
-						facing = facing.Clockwise();
-						break;
-				}
-			}
-		}
-
-		int lastSteps = int.Parse(num);
-		for (int i = 0; i < lastSteps; i++)
-		{
-			if (!position.GetNext(facing).HasWall)
-			{
-				position = position.GetNext(facing);
-			}
-		}
-
-		this.ReportResult($"{position} {facing}");
-		this.ReportResult(position.Position.Y * 1000 + position.Position.X * 4 + (int)facing);
-	}
-
-	private class Face
-	{
-		private readonly int faceSize;
-
-		public Face(Position position, int faceSize)
-		{
-			this.faceSize = faceSize;
-			this.Position = position;
-		}
-
-		public Position Position { get; }
-
-		public Face? Left { get; set; }
-		public Face? Right { get; set; }
-		public Face? Top { get; set; }
-		public Face? Bottom { get; set; }
-
-		public Position GetEdgePosition(Direction direction, int offset)
-		{
-			return direction switch
-			{
-				Direction.Left => this.Position with
-				{
-					Y = this.Position.Y + offset
-				},
-				Direction.Right => new Position(
-					Y: this.Position.Y + offset,
-					X: this.Position.X + this.faceSize - 1),
-				Direction.Top => this.Position with
-				{
-					X = this.Position.X + offset
-				},
-				Direction.Bottom => new Position(
-					X: this.Position.X + offset,
-					Y: this.Position.Y + this.faceSize - 1),
-				_ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-			};
-		}
-
-		public Face GetNext(Direction direction)
-		{
-			return direction switch
-			{
-				Direction.Left => this.Left,
-				Direction.Right => this.Right,
-				Direction.Top => this.Top,
-				Direction.Bottom => this.Bottom,
-				_ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-			};
-		}
-	}
-
 
 	private class Tile
 	{
@@ -313,11 +262,21 @@ internal class Day22 : DayX
 		public Position Position { get; }
 		public bool HasWall { get; set; }
 		public Tile Left { get; set; }
+		public Direction LeftResultDirection { get; set; } = Direction.Left;
 		public Tile Right { get; set; }
+		public Direction RightResultDirection { get; set; } = Direction.Right;
 		public Tile Top { get; set; }
+		public Direction TopResultDirection { get; set; } = Direction.Top;
 		public Tile Bottom { get; set; }
+		public Direction BottomResultDirection { get; set; } = Direction.Bottom;
 
-		public Tile GetNext(Direction direction)
+
+		public (Tile tile, Direction direction) GetNext(Direction direction)
+		{
+			return (this.GetNextTile(direction), this.GetNextDirection(direction));
+		}
+
+		public Tile GetNextTile(Direction direction)
 		{
 			return direction switch
 			{
@@ -329,85 +288,21 @@ internal class Day22 : DayX
 			};
 		}
 
+		public Direction GetNextDirection(Direction direction)
+		{
+			return direction switch
+			{
+				Direction.Left => this.LeftResultDirection,
+				Direction.Right => this.RightResultDirection,
+				Direction.Top => this.TopResultDirection,
+				Direction.Bottom => this.BottomResultDirection,
+				_ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+			};
+		}
+
 		public override string ToString()
 		{
 			return this.Position.ToString();
-		}
-
-		//public (Position position, Direction facing) GetNextV2(Direction facing, Dictionary<Position, Face> faces)
-		//{
-		//	Position next = this.GetNext(facing).Position;
-		//	if (next == null)
-		//	{
-		//		// we have to move to a different face
-		//		Face current =
-		//			faces[
-		//				new Position(this.Position.X - (this.Position.X % Day22.faceSize),
-		//					this.Position.Y - (this.Position.Y % Day22.faceSize))];
-		//		switch (facing)
-		//		{
-		//			case Direction.Right:
-		//				return 
-		//					(
-		//						this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)??
-		//						this.WalkFaces(current,this.Position,Direction.Top,Direction.Right,Direction.Bottom,Direction.Top,false)??
-		//						this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)??
-		//						this.WalkFaces(current,this.Position,Direction.Left,Direction.Left,Direction.Left,Direction.Right,false)
-		//					 )!.Value;
-		//				break;
-		//			case Direction.Bottom:
-		//				break;
-		//			case Direction.Left:
-		//				if (current.Right?.Right != null)
-		//				{
-		//					next = current.Right.Right.GetEdgePosition(Direction.Right, this.Position.Y % Day22.faceSize);
-		//				}
-		//				else if (current.Bottom?.Left != null)
-		//				{
-		//					next = current.Bottom.Left.GetEdgePosition(Direction.Top, this.Position.Y % Day22.faceSize);
-		//					facing = Direction.Bottom;
-		//				}
-		//				else if (current.Top?.Left != null)
-		//				{
-		//					next = current.Top.Left.GetEdgePosition(Direction.Bottom,
-		//						Day22.faceSize - (this.Position.Y % Day22.faceSize));
-		//					facing = Direction.Top;
-		//				}
-		//				break;
-		//			case Direction.Top:
-		//				break;
-		//			default:
-		//				throw new ArgumentOutOfRangeException(nameof(facing), facing, null);
-		//		}
-		//	}
-
-		//	return (facing, next);
-		//}
-
-		private (Position next, Direction facing)? WalkFaces(Face face, Position p, Direction a, Direction b, Direction enteringFaceAt, Direction facingTo, bool reverseOrder)
-		{
-			int index;
-			if (a is Direction.Left or Direction.Right)
-			{
-				index = p.Y % Day22.faceSize;
-			}
-			else
-			{
-				index = p.X % Day22.faceSize;
-			}
-
-			if (reverseOrder)
-			{
-				index = 50 - index;
-			}
-
-			Face? targetFace = face.GetNext(a)?.GetNext(b);
-			if (targetFace != null)
-			{
-				return (targetFace.GetEdgePosition(enteringFaceAt, index), facingTo);
-			}
-
-			return null;
 		}
 	}
 
@@ -422,18 +317,13 @@ internal class Day22 : DayX
 
 internal static class DirectionHelper
 {
-	public static Day22.Direction GetOpposite(this Day22.Direction direction)
-	{
-		return (Day22.Direction)(direction + 2 % 4);
-	}
-
 	public static Day22.Direction Clockwise(this Day22.Direction direction)
 	{
-		return (Day22.Direction)(direction + 1 % 4);
+		return (Day22.Direction)(((int)direction + 1) % 4);
 	}
 
 	public static Day22.Direction AntiClockwise(this Day22.Direction direction)
 	{
-		return (Day22.Direction)(direction - 1 % 4);
+		return (Day22.Direction)(((int)direction + 3) % 4);
 	}
 }

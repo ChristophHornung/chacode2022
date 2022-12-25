@@ -39,10 +39,11 @@ namespace Chacode2022
 			//new Day21().Solve(2);
 			//new V2Day17().Solve(2);
 			//new Day22().Solve(1);
-			//new Day22().Solve(2);
+			new Day22().Solve(2);
 			//new Day23().Solve(1);
 			//new Day23().Solve(2);
-			new Day24().Solve(1);
+			//new Day24().Solve(1);
+			//new Day25().Solve(1);
 			Console.ReadKey();
 		}
 	}
